@@ -1,0 +1,184 @@
+#!/usr/bin/make -f
+
+INSTALL_FILE    := install -m 644
+INSTALL_PROGRAM := install -m 755
+INSTALL_DIR     := install -m 755 -d
+
+version := $(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
+tools_version := 20081215-3+$(version)
+
+env_package := uboot-envtools
+mkimage_package := uboot-mkimage
+package := u-boot
+tools_package := u-boot-tools
+
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+export CROSS_COMPILE ?= $(DEB_HOST_GNU_TYPE)-
+endif
+
+# the upstream build passes LDFLAGS directly to ld instead of calling gcc for
+# linking; so instead of passing -Wl,foo in LDFLAGS as in automake builds, one
+# should set LDFLAGS to foo directly
+comma := ,
+LDFLAGS := $(patsubst -Wl$(comma)%,%,$(LDFLAGS))
+
+# macro to test whether a host header is present
+check_include = $(shell echo | $(CROSS_COMPILE)gcc -E -include $(1) -o /dev/null - 2>/dev/null && echo 1 || echo 0)
+
+# whether we have Linux MTD headers
+has_mtd_user := $(call check_include, mtd/mtd-user.h)
+
+build-indep:
+
+build: build-arch build-indep
+build-arch:
+	$(checkdir)
+
+	set -e; sed -n 's/^$(DEB_HOST_ARCH)[[:space:]]\+//p' debian/targets \
+	    | while read platform target; do \
+	        builddir=`pwd`/debian/build/$$platform; \
+	        installdir=debian/$(package)/usr/lib/$(package)/$$platform; \
+	        mkdir -p $$builddir; \
+	        $(MAKE) O=$$builddir $${platform}_config; \
+	        $(MAKE) O=$$builddir $$builddir/$$target; \
+	        $(INSTALL_DIR) $$installdir; \
+	        $(INSTALL_FILE) $$builddir/$$target $$installdir; \
+	        $(INSTALL_FILE) $$builddir/u-boot $$installdir/uboot.elf; \
+	        $(CROSS_COMPILE)strip --remove-section=.comment \
+	            $$installdir/uboot.elf; \
+	done
+
+ifeq ($(CROSS_COMPILE),)
+	# board-independent tools
+	$(INSTALL_DIR) debian/$(tools_package)/usr/bin/
+	$(MAKE) HOSTCC=$(CROSS_COMPILE)gcc HOSTSTRIP=$(CROSS_COMPILE)strip \
+	    tools
+	$(INSTALL_PROGRAM) tools/mkimage debian/$(tools_package)/usr/bin/
+	# only build env tools if we have Linux MTD headers
+ifeq ($(has_mtd_user),1)
+	$(MAKE) HOSTCC=$(CROSS_COMPILE)gcc HOSTSTRIP=$(CROSS_COMPILE)strip env
+	$(INSTALL_PROGRAM) tools/env/fw_printenv debian/$(tools_package)/usr/bin/
+	ln -sf fw_printenv debian/$(tools_package)/usr/bin/fw_setenv
+endif
+endif
+
+	touch $@
+
+clean:
+	$(checkdir)
+	rm -f debian/files debian/*.substvars
+	rm -rf debian/$(env_package) debian/$(mkimage_package) debian/$(package) debian/$(tools_package)
+	rm -f build-arch
+	$(MAKE) distclean
+	rm -rf arch/arm/include/asm/arch arch/arm/include/asm/proc
+	rm -rf debian/build
+	rm -f `find . -name "*~"`
+
+binary-indep:	checkroot
+	$(checkdir)
+
+	$(INSTALL_DIR) debian/$(mkimage_package)/DEBIAN
+	$(INSTALL_DIR) debian/$(mkimage_package)/usr/share/doc/$(mkimage_package)/
+
+	$(INSTALL_FILE) debian/copyright \
+	    debian/$(mkimage_package)/usr/share/doc/$(mkimage_package)/
+	$(INSTALL_FILE) debian/changelog \
+	    debian/$(mkimage_package)/usr/share/doc/$(mkimage_package)/changelog.Debian
+
+	gzip -9f `find debian/$(mkimage_package)/usr/share/doc -type f ! -name "copyright"`
+	dpkg-gencontrol -ldebian/changelog -isp -p$(mkimage_package) -Tdebian/$(mkimage_package).substvars -Pdebian/$(mkimage_package)
+	cd debian/$(mkimage_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+
+	chown -R root:root debian/$(mkimage_package)
+	chmod -R go=rX debian/$(mkimage_package)
+
+	dpkg --build debian/$(mkimage_package) ..
+
+
+	$(INSTALL_DIR) debian/$(env_package)/DEBIAN
+	$(INSTALL_DIR) debian/$(env_package)/usr/share/doc/$(env_package)/
+
+	$(INSTALL_FILE) debian/copyright \
+	    debian/$(env_package)/usr/share/doc/$(env_package)/
+	$(INSTALL_FILE) debian/changelog \
+	    debian/$(env_package)/usr/share/doc/$(env_package)/changelog.Debian
+
+	gzip -9f `find debian/$(env_package)/usr/share/doc -type f ! -name "copyright"`
+	dpkg-gencontrol -v$(tools_version) -ldebian/changelog -isp -p$(env_package) -Tdebian/$(env_package).substvars -Pdebian/$(env_package)
+	cd debian/$(env_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+
+	chown -R root:root debian/$(env_package)
+	chmod -R go=rX debian/$(env_package)
+
+	dpkg --build debian/$(env_package) ..
+
+binary-arch:	checkroot build
+	$(checkdir)
+
+	$(INSTALL_DIR) debian/$(package)/DEBIAN
+
+	$(INSTALL_DIR) debian/$(package)/usr/share/doc/$(package)/
+	$(INSTALL_FILE) debian/README.Debian \
+	    debian/$(package)/usr/share/doc/$(package)/
+	$(INSTALL_FILE) debian/copyright \
+	    debian/$(package)/usr/share/doc/$(package)/
+	$(INSTALL_FILE) debian/changelog \
+	    debian/$(package)/usr/share/doc/$(package)/changelog.Debian
+
+	$(INSTALL_DIR) debian/$(package)/usr/share/lintian/overrides/
+	$(INSTALL_FILE) debian/lintian.overrides \
+	    debian/$(package)/usr/share/lintian/overrides/$(package)
+
+	gzip -9f `find debian/$(package)/usr/share/doc -type f ! -name "copyright"`
+	dpkg-gencontrol -ldebian/changelog -isp -p$(package) -Tdebian/$(package).substvars -Pdebian/$(package)
+	cd debian/$(package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+
+	chown -R root:root debian/$(package)
+	chmod -R go=rX debian/$(package)
+
+	dpkg --build debian/$(package) ..
+
+
+	$(INSTALL_DIR) debian/$(tools_package)/DEBIAN
+
+	$(INSTALL_DIR) debian/$(tools_package)/usr/share/doc/$(tools_package)/
+	$(INSTALL_FILE) debian/copyright     debian/$(tools_package)/usr/share/doc/$(tools_package)/
+	$(INSTALL_FILE) debian/changelog     debian/$(tools_package)/usr/share/doc/$(tools_package)/changelog.Debian
+
+	$(INSTALL_DIR) debian/$(tools_package)/usr/share/man/man1
+	$(INSTALL_DIR) debian/$(tools_package)/usr/share/man/man8
+	$(INSTALL_FILE) doc/mkimage.1                 debian/$(tools_package)/usr/share/man/man1/
+	$(INSTALL_FILE) debian/manpages/fw_printenv.8 debian/$(tools_package)/usr/share/man/man8/
+	$(INSTALL_FILE) debian/manpages/fw_setenv.8   debian/$(tools_package)/usr/share/man/man8/
+
+	gzip -9f `find debian/$(tools_package)/usr/share/doc -type f ! -name "copyright"`
+	gzip -9f `find debian/$(tools_package)/usr/share/man -type f`
+
+	dpkg-shlibdeps -Tdebian/$(tools_package).substvars \
+	    debian/$(tools_package)/usr/bin/*
+	dpkg-gencontrol -ldebian/changelog -isp -p$(tools_package) -Tdebian/$(tools_package).substvars -Pdebian/$(tools_package)
+	cd debian/$(tools_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+
+	chown -R root:root debian/$(tools_package)
+	chmod -R go=rX debian/$(tools_package)
+
+	dpkg --build debian/$(tools_package) ..
+
+define checkdir
+	test -f debian/rules
+endef
+
+binary:		binary-arch binary-indep
+
+prebuild:
+	@true
+
+checkroot:
+	$(checkdir)
+	test root = "`whoami`"
+
+.PHONY: build build-indep binary binary-arch binary-indep clean checkroot prebuild

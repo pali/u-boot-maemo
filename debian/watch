@@ -1,0 +1,3 @@
+version=3
+
+ftp://ftp.denx.de/pub/u-boot/ u-boot-([\d\.]+)\.tar\.bz2

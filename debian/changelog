@@ -1,0 +1,362 @@
+u-boot (2011.09-2) unstable; urgency=low
+
+  * Patch from Pino Toscano <pino@debian.org> to build on the Hurd.
+    closes: #648295.
+  * Drop gr_xc3s_1500 target.
+  * Add build-arch and build-indep targets to debian/rules.
+
+ -- Clint Adams <clint@debian.org>  Tue, 15 Nov 2011 23:53:01 -0500
+
+u-boot (2011.09-1) unstable; urgency=low
+
+  [ Hector Oron ]
+  * Enable MX53LOCO platform.
+  * Update lintian overrides.
+
+  [ Loïc Minier ]
+  * Fix FTBFS on amd64 and allow `make tools` to succeed without
+    config.
+
+  [ Clint Adams ]
+  * New upstream version.
+    - Update kerma-sheevaplug-mvsdio.diff.
+    - Drop panda-default-console.diff (refactored).
+    - Replace dreamplug patches with Jason's v8.
+  * Add Buffalo Linkstation Mini env config from Benjamin Cama.
+
+ -- Clint Adams <clint@debian.org>  Fri, 30 Sep 2011 21:22:23 -0400
+
+u-boot (2011.06-4) unstable; urgency=low
+
+  * Increase the USB non-bulk timeout by an order of magnitude.
+    May fix #635774.
+
+ -- Clint Adams <clint@debian.org>  Sat, 06 Aug 2011 13:42:52 -0400
+
+u-boot (2011.06-3) unstable; urgency=low
+
+  * Add DreamPlug support.
+
+ -- Clint Adams <clint@debian.org>  Sun, 24 Jul 2011 09:35:32 -0400
+
+u-boot (2011.06-2) unstable; urgency=low
+
+  * Use -Wno-error=unused-but-set-variable on i386.
+
+ -- Clint Adams <clint@debian.org>  Sat, 02 Jul 2011 22:14:44 -0400
+
+u-boot (2011.06-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fix i386 and mipsel builds.
+
+ -- Clint Adams <clint@debian.org>  Sat, 02 Jul 2011 19:25:28 -0400
+
+u-boot (2011.06~rc3-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Clint Adams <clint@debian.org>  Sat, 02 Jul 2011 15:50:46 -0400
+
+u-boot (2011.06~rc2-2) unstable; urgency=low
+
+  * Fix mipsel endianness problem again.
+  * Try building gr_xc3s_1500 on sparc.
+
+ -- Clint Adams <clint@debian.org>  Sat, 18 Jun 2011 10:13:53 -0400
+
+u-boot (2011.06~rc2-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fix tools config selection.
+
+ -- Clint Adams <clint@debian.org>  Tue, 14 Jun 2011 20:53:07 -0400
+
+u-boot (2011.06~rc1-1) unstable; urgency=low
+
+  * New upstream version.
+    - Update mipsel-native-endianness.diff
+    - Drop Drop-config.h-include-in-tools-imximage.h.diff (merged).
+    - Drop openrd-client-and-ultimate.diff (merged).
+    - Update openrd-mmc.diff (formerly openrd-mmc-mtd-fat.diff).
+    - Drop eNET-monitor_flash_len.diff (merged).
+    - Update snapshot.commit to 2011.06-rc1.
+    - Use the first target for each arch to build the tools, or
+      fake it on the other architectures.
+  * Only build efikamx image on armhf.
+
+ -- Clint Adams <clint@debian.org>  Sat, 21 May 2011 11:04:30 -0400
+
+u-boot (2011.03-6) unstable; urgency=low
+
+  * Bump to Standards-Version 3.9.2.
+  * Tweak the u-boot-tools description.
+  * Drop igep0020, omap3_beagle, and omap4_panda targets from
+    armel; they are available on armhf.
+
+ -- Clint Adams <clint@debian.org>  Tue, 26 Apr 2011 16:11:24 -0400
+
+u-boot (2011.03-5) unstable; urgency=low
+
+  [ Sebastian Reichel ]
+  * Add Pandaboard target.  closes: #624123
+  * New patch to change default console on Pandaboard.
+
+ -- Clint Adams <clint@debian.org>  Mon, 25 Apr 2011 15:36:16 -0400
+
+u-boot (2011.03-4) unstable; urgency=low
+
+  * Enable FAT, SD/MMC, MTD, JFFS, UBIFS support on OpenRD boards.
+
+ -- Clint Adams <clint@debian.org>  Wed, 13 Apr 2011 18:05:36 -0400
+
+u-boot (2011.03-3) unstable; urgency=low
+
+  * Actually pass the right arch_number for OpenRD-Ultimate.
+
+ -- Clint Adams <clint@debian.org>  Tue, 12 Apr 2011 14:28:20 -0400
+
+u-boot (2011.03-2) unstable; urgency=low
+
+  * Fix i386 FTBFS with eNET-monitor_flash_len.diff
+  * Add patch for OpenRD-Client and OpenRD-Ultimate.
+  * Drop openrd_base target and add openrd_ultimate target.
+
+ -- Clint Adams <clint@debian.org>  Tue, 05 Apr 2011 15:56:43 -0400
+
+u-boot (2011.03-1) unstable; urgency=low
+
+  [ Loïc Minier ]
+  * Only try to build env tools when Linux MTD headers are present.
+    closes: #619673.
+
+  [ Clint Adams ]
+  * New upstream version.
+    - Drop fix-definition-of-global_data-struct.diff (now upstream).
+    - Drop EfikaMX-switch-to-MACH_TYPE_MX51_EFIKAMX.diff (upstream now).
+    - Drop sh-sh7785lcr-Fix-out-of-tree-building.diff (upstream now).
+    - Drop MIPS-dbau1x00-Remove-unused-flash-driver-stub.diff (upstream now).
+    - Drop x86-Align-config.mk-and-linker-scripts-with-other-ar.diff
+      (upstream now).
+    - Update snapshot.commit to 2011.03
+
+ -- Clint Adams <clint@debian.org>  Fri, 01 Apr 2011 10:30:46 -0400
+
+u-boot (2011.03~rc1-4) experimental; urgency=low
+
+  * Add patch x86-Align-config.mk-and-linker-scripts-with-other-ar.
+    From upstream mailing-list; fixes x86 build (eNET).
+
+ -- Loïc Minier <lool@debian.org>  Wed, 09 Feb 2011 14:51:01 +0100
+
+u-boot (2011.03~rc1-3) experimental; urgency=low
+
+  * Add debian/source/local-options
+    - unapply-patches: avoids committing patched tree after a build
+    - abort-on-upstream-changes: avoids creating a debian-changes-* patch
+      when building from a dirty tree
+  * Add patch MIPS-dbau1x00-Remove-unused-flash-driver-stub,
+    from u-boot-mipsel.git 17a990b55008fd79636e4880d9d10b7172ca87ce and also
+    sent to the upstream mailing-list; fixes build of dbau1x00 board by
+    removing board/dbau1x00/flash.c entirely, and hence fixes the build of
+    u-boot on mipsel.
+
+ -- Loïc Minier <lool@debian.org>  Tue, 08 Feb 2011 16:49:05 +0100
+
+u-boot (2011.03~rc1-2) experimental; urgency=low
+
+  * New patch sh-sh7785lcr-Fix-out-of-tree-building; from upstream
+    e72f46787f44c1104a8df18511ab230b6072a1f0; fixes Debian sh4 build; thanks
+    Nobuhiro Iwamatsu; closes: #611873.
+
+ -- Loïc Minier <lool@debian.org>  Mon, 07 Feb 2011 17:20:16 +0100
+
+u-boot (2011.03~rc1-1) experimental; urgency=low
+
+  * dpkg-shlibdeps usr/bin/* rather than just mkimage.
+  * uboot-mkimage's Section is utils.
+  * Allow overriding CROSS_COMPILE.
+  * New upstream release candidate.
+    - Merge commit v2011.03-rc1
+    - Update snapshot.commit to 2011.03-rc1
+  * Add EfikaMX support.
+    - Add patch EfikaMX-switch-to-MACH_TYPE_MX51_EFIKAMX from the upstream
+      mailing-list; fixes build on EfikaMX (EfikaMX: switch to
+      MACH_TYPE_MX51_EFIKAMX)
+    - Add patch Drop-config.h-include-in-tools-imximage.h from the upstream
+      mailing-list; fixes tools-all build of imximage.c.
+    - Build u-boot.imx for efikamx on armel.
+  * Refresh patch kerma-sheevaplug-mvsdio to fix fuzz.
+
+ -- Loïc Minier <lool@debian.org>  Thu, 03 Feb 2011 13:13:14 +0100
+
+u-boot (2010.12-2) unstable; urgency=low
+
+  * Avoid calling dpkg-architecture if DEB_HOST_ARCH is set.
+  * Misc refactoring of debian/rules.
+    - Split per architecture list of platform and targets into
+      debian/targets.
+    - Actually use INSTALL_FILE/INSTALL_DIR/INSTALL_PROGRAM.
+    - Add support for cross-builds; these will currently lack tools.
+    - Build board-specific u-boot files in a separate build dir from the
+      generic tools
+  * Fix handling of -Wl,foo LDFLAGS; the upstream build passes LDFLAGS
+    directly to ld instead of calling gcc for linking; so instead of passing
+    -Wl,foo in LDFLAGS as in automake builds, one should set LDFLAGS to foo
+    directly; add a snippet to strip -Wl, from LDFLAGS; alternatively, we
+    could do as in other special packages like the kernel and simply unset
+    LDFLAGS entirely; closes: #607613.
+  * Install and compress upstream mkimage manpage; based on a patch by
+    Marcin Juszkiewicz.
+  * Add a dummy uboot-mkimage package for upgrades from squeeze; based on a
+    patch by Marcin Juszkiewicz; closes: #607618.
+  * Add new patch, fix-definition-of-global_data-struct, from the upstream
+    x86 maintainer; fixes build of eNET board which breaks u-boot's build on
+    i386; closes: #608801.
+  * Workaround an upstream bug in distclean by removing include/asm/proc and
+    /arch explicitly for now; patch was sent upstream.
+  * Don't repeat Section: in binary package.
+  * Add myself to Uploaders.
+  * Split tools in u-boot-tools package.
+  * Drop board-specific tools; these are too dangerous; only ship mkimage for
+    now.
+  * Add igep0020 and omap3_beagle builds on armel
+  * Update snapshot.commit to the 2010.12 release contents; this avoids a
+    pointless diff with the tarball.
+
+ -- Loïc Minier <lool@debian.org>  Mon, 17 Jan 2011 22:43:41 +0100
+
+u-boot (2010.12-1) unstable; urgency=low
+
+  * New upstream version.
+  * Install more tools in preparation for splitting off a
+    u-boot-tools binary package.
+
+ -- Clint Adams <clint@gnu.org>  Tue, 28 Dec 2010 17:03:44 -0500
+
+u-boot (2010.12~rc3-1) unstable; urgency=low
+
+  * New upstream release candidate.
+  * Add dockstar target.
+
+ -- Clint Adams <clint@gnu.org>  Sun, 19 Dec 2010 09:45:42 -0500
+
+u-boot (2010.12~rc2-1) unstable; urgency=low
+
+  * New upstream release candidate.
+  * Add openrd_base target.
+
+ -- Clint Adams <clint@gnu.org>  Sat, 04 Dec 2010 15:32:38 -0500
+
+u-boot (2010.09-2) unstable; urgency=low
+
+  * Enable ext2 commands on GuruPlug.
+  * Ship ELF files (for loading into RAM with OpenOCD).
+
+ -- Clint Adams <clint@gnu.org>  Sat, 20 Nov 2010 18:20:40 -0500
+
+u-boot (2010.09-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Clint Adams <schizo@debian.org>  Wed, 29 Sep 2010 00:06:25 -0400
+
+u-boot (2010.09~rc2-1) unstable; urgency=low
+
+  * New upstrem release candidate.
+
+ -- Clint Adams <schizo@debian.org>  Sun, 19 Sep 2010 14:20:52 -0400
+
+u-boot (2010.09~rc1-2) unstable; urgency=low
+
+  * Add patch from Gérald Kerma to add Sheevaplug mvsata support.
+  * Add patch from Gérald Kerma to add Sheevaplug mvsdio support.
+
+ -- Clint Adams <schizo@debian.org>  Sun, 12 Sep 2010 11:48:22 -0400
+
+u-boot (2010.09~rc1-1) unstable; urgency=low
+
+  * New upstream release candidate.
+    - Drop guruplug-miiphy_reset.diff.
+    - Update mipsel-native-endianness.diff.
+    - Drop sh4-native-compile.diff.
+  * Bump to Standards-Version 3.9.1.
+
+ -- Clint Adams <schizo@debian.org>  Sat, 11 Sep 2010 00:43:04 -0400
+
+u-boot (2010.06-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Clint Adams <schizo@debian.org>  Sat, 03 Jul 2010 13:49:46 -0400
+
+u-boot (2010.06~rc3-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fix sh4-native-compile.diff to not break sh64, thanks to Paul
+    Mundt.
+  * Ship mkimage, conflict/replace uboot-mkimage, build on all
+    architectures.
+
+ -- Clint Adams <schizo@debian.org>  Fri, 25 Jun 2010 14:49:06 -0400
+
+u-boot (2010.06~rc2-1) unstable; urgency=medium
+
+  * Add sh4-native-compile.diff from Aurelien Jarno.  closes: #586026.
+  * New upstream version.
+    - Drop marvell-machtypes.diff.
+
+ -- Clint Adams <schizo@debian.org>  Tue, 15 Jun 2010 21:37:26 -0400
+
+u-boot (2010.06~rc1-6) unstable; urgency=medium
+
+  * Add guruplug-miiphy_reset.diff.
+  * Clean between targets.  closes: #585570.
+
+ -- Clint Adams <schizo@debian.org>  Fri, 11 Jun 2010 21:57:31 -0400
+
+u-boot (2010.06~rc1-5) unstable; urgency=low
+
+  * Replace mipsel-native-endianness.diff with patch adapted
+    from a 2008 mailing list posting by Shinya Kuribayashi.
+
+ -- Clint Adams <schizo@debian.org>  Fri, 04 Jun 2010 20:08:27 -0400
+
+u-boot (2010.06~rc1-4) unstable; urgency=low
+
+  * Add r2dplus target for sh4.
+  * mipsel-native-endianness.diff: don't force endianness on mips/mipsel
+
+ -- Clint Adams <schizo@debian.org>  Thu, 03 Jun 2010 19:32:50 -0400
+
+u-boot (2010.06~rc1-3) unstable; urgency=low
+
+  * Fix mipsel typo.
+  * Apply patch from Nobuhiro Iwamatsu to change sh4 target board
+    from espt to sh7785lcr_32bit.  closes: #584192.
+
+ -- Clint Adams <schizo@debian.org>  Wed, 02 Jun 2010 08:25:04 -0400
+
+u-boot (2010.06~rc1-2) unstable; urgency=low
+
+  * Produce u-boot.bin on i386.
+  * Switch mipsel target to AMD DBAu1100.
+  * Add marvell-machtypes.diff.
+
+ -- Clint Adams <schizo@debian.org>  Mon, 31 May 2010 22:09:29 -0400
+
+u-boot (2010.06~rc1-1) unstable; urgency=low
+
+  * Add Vcs-Git and Vcs-Browser headers.
+  * Add GuruPlug target (armel).
+  * Switch mipsel target to TB0229.
+  * Add watch file.
+  * Update README.Debian for SheevaPlug and GuruPlug.
+
+ -- Clint Adams <schizo@debian.org>  Mon, 31 May 2010 19:29:40 -0400
+
+u-boot (2010.03-1) unstable; urgency=low
+
+  * Initial packaging.  closes: #583605.
+
+ -- Clint Adams <schizo@debian.org>  Fri, 28 May 2010 16:20:39 -0400

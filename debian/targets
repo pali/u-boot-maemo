@@ -1,0 +1,19 @@
+# DEB_HOST_ARCH		platform	target
+# --------------------------------------------
+armel			dockstar	u-boot.kwb
+armel			dreamplug	u-boot.kwb
+armel			guruplug	u-boot.kwb
+armel			openrd_ultimate	u-boot.kwb
+armel			sheevaplug	u-boot.kwb
+armhf			efikamx		u-boot.imx
+armhf			igep0020	u-boot.bin
+armhf			omap3_beagle	u-boot.bin
+armhf			omap4_panda	u-boot.bin
+armhf			mx53loco	u-boot.imx
+avr32			hammerhead	u-boot.img
+i386			eNET		u-boot.bin
+mipsel			dbau1100	u-boot.img
+mips			qemu_mips	u-boot.img
+powerpc			ZUMA		u-boot.img
+sh4			r2dplus		u-boot.img
+sh4			sh7785lcr_32bit	u-boot.img

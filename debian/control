@@ -1,0 +1,50 @@
+Source: u-boot
+Section: admin
+Priority: optional
+Maintainer: Clint Adams <clint@debian.org>
+Uploaders: Loïc Minier <lool@debian.org>
+Standards-Version: 3.9.2
+Homepage: http://www.denx.de/wiki/U-Boot/
+Vcs-Git: git://git.debian.org/collab-maint/u-boot.git
+Vcs-Browser: http://git.debian.org/?p=collab-maint/u-boot.git;a=summary
+
+Package: u-boot
+Architecture: any
+Description: A boot loader for embedded systems
+ Das U-Boot is a cross-platform bootloader for embedded systems,
+ used as the default boot loader by several board vendors.  It is
+ intended to be easy to port and to debug, and runs on many
+ supported architectures, including PPC, ARM, MIPS, x86, m68k,
+ NIOS, and Microblaze.
+
+Package: u-boot-tools
+Architecture: any
+Depends: ${shlibs:Depends}
+Breaks: uboot-envtools (<< 20081215-3~),
+        uboot-mkimage (<= 0.4build1),
+        u-boot (<< 2010.12-2)
+Replaces: uboot-envtools (<< 20081215-3~),
+          uboot-mkimage (<= 0.4build1),
+          u-boot (<< 2010.12-2)
+Description: companion tools for Das U-Boot bootloader
+ This package includes the mkimage program, which allows generation of U-Boot
+ images in various formats, and the fw_printenv and fw_setenv programs to read
+ and modify U-Boot's environment.
+
+Package: uboot-envtools
+Section: utils
+Architecture: all
+Depends: u-boot-tools
+Description: read/modify the environment for the U-Boot boot loader (transitional package)
+ Package to ease upgrading from uboot-envtools to u-boot-tools.
+ .
+ This package may safely be removed.
+
+Package: uboot-mkimage
+Section: utils
+Architecture: all
+Depends: u-boot-tools
+Description: generate kernel image for U-Boot (transitional package)
+ Package to ease upgrading from uboot-mkimage to u-boot-tools.
+ .
+ This package may safely be removed.
