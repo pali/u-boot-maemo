@@ -7,9 +7,9 @@ INSTALL_DIR     := install -m 755 -d
 version := $(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
 tools_version := 20081215-3+$(version)
 
-env_package := uboot-envtools
 mkimage_package := uboot-mkimage
-package := u-boot
+package := u-boot-bootimg
+flash_package := u-boot-flasher
 tools_package := u-boot-tools
 
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
@@ -26,11 +26,11 @@ endif
 comma := ,
 LDFLAGS := $(patsubst -Wl$(comma)%,%,$(LDFLAGS))
 
+# with -Bsymbolic-functions flag u-boot is not working
+LDFLAGS := $(subst -Bsymbolic-functions,,$(LDFLAGS))
+
 # macro to test whether a host header is present
 check_include = $(shell echo | $(CROSS_COMPILE)gcc -E -include $(1) -o /dev/null - 2>/dev/null && echo 1 || echo 0)
-
-# whether we have Linux MTD headers
-has_mtd_user := $(call check_include, mtd/mtd-user.h)
 
 build-indep:
 
@@ -41,37 +41,26 @@ build-arch:
 	set -e; sed -n 's/^$(DEB_HOST_ARCH)[[:space:]]\+//p' debian/targets \
 	    | while read platform target; do \
 	        builddir=`pwd`/debian/build/$$platform; \
-	        installdir=debian/$(package)/usr/lib/$(package)/$$platform; \
+	        installdir=debian/$(package)/boot; \
 	        mkdir -p $$builddir; \
 	        $(MAKE) O=$$builddir $${platform}_config; \
 	        $(MAKE) O=$$builddir $$builddir/$$target; \
 	        $(INSTALL_DIR) $$installdir; \
 	        $(INSTALL_FILE) $$builddir/$$target $$installdir; \
-	        $(INSTALL_FILE) $$builddir/u-boot $$installdir/uboot.elf; \
-	        $(CROSS_COMPILE)strip --remove-section=.comment \
-	            $$installdir/uboot.elf; \
 	done
 
-ifeq ($(CROSS_COMPILE),)
 	# board-independent tools
 	$(INSTALL_DIR) debian/$(tools_package)/usr/bin/
 	$(MAKE) HOSTCC=$(CROSS_COMPILE)gcc HOSTSTRIP=$(CROSS_COMPILE)strip \
 	    tools
 	$(INSTALL_PROGRAM) tools/mkimage debian/$(tools_package)/usr/bin/
-	# only build env tools if we have Linux MTD headers
-ifeq ($(has_mtd_user),1)
-	$(MAKE) HOSTCC=$(CROSS_COMPILE)gcc HOSTSTRIP=$(CROSS_COMPILE)strip env
-	$(INSTALL_PROGRAM) tools/env/fw_printenv debian/$(tools_package)/usr/bin/
-	ln -sf fw_printenv debian/$(tools_package)/usr/bin/fw_setenv
-endif
-endif
 
 	touch $@
 
 clean:
 	$(checkdir)
 	rm -f debian/files debian/*.substvars
-	rm -rf debian/$(env_package) debian/$(mkimage_package) debian/$(package) debian/$(tools_package)
+	rm -rf debian/$(mkimage_package) debian/$(package) debian/$(flash_package) debian/$(tools_package)
 	rm -f build-arch
 	$(MAKE) distclean
 	rm -rf arch/arm/include/asm/arch arch/arm/include/asm/proc
@@ -98,24 +87,6 @@ binary-indep:	checkroot
 
 	dpkg --build debian/$(mkimage_package) ..
 
-
-	$(INSTALL_DIR) debian/$(env_package)/DEBIAN
-	$(INSTALL_DIR) debian/$(env_package)/usr/share/doc/$(env_package)/
-
-	$(INSTALL_FILE) debian/copyright \
-	    debian/$(env_package)/usr/share/doc/$(env_package)/
-	$(INSTALL_FILE) debian/changelog \
-	    debian/$(env_package)/usr/share/doc/$(env_package)/changelog.Debian
-
-	gzip -9f `find debian/$(env_package)/usr/share/doc -type f ! -name "copyright"`
-	dpkg-gencontrol -v$(tools_version) -ldebian/changelog -isp -p$(env_package) -Tdebian/$(env_package).substvars -Pdebian/$(env_package)
-	cd debian/$(env_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
-
-	chown -R root:root debian/$(env_package)
-	chmod -R go=rX debian/$(env_package)
-
-	dpkg --build debian/$(env_package) ..
-
 binary-arch:	checkroot build
 	$(checkdir)
 
@@ -129,9 +100,7 @@ binary-arch:	checkroot build
 	$(INSTALL_FILE) debian/changelog \
 	    debian/$(package)/usr/share/doc/$(package)/changelog.Debian
 
-	$(INSTALL_DIR) debian/$(package)/usr/share/lintian/overrides/
-	$(INSTALL_FILE) debian/lintian.overrides \
-	    debian/$(package)/usr/share/lintian/overrides/$(package)
+	mv debian/$(package)/boot/u-boot.bin debian/$(package)/boot/u-boot-$(version).bin
 
 	gzip -9f `find debian/$(package)/usr/share/doc -type f ! -name "copyright"`
 	dpkg-gencontrol -ldebian/changelog -isp -p$(package) -Tdebian/$(package).substvars -Pdebian/$(package)
@@ -149,11 +118,12 @@ binary-arch:	checkroot build
 	$(INSTALL_FILE) debian/copyright     debian/$(tools_package)/usr/share/doc/$(tools_package)/
 	$(INSTALL_FILE) debian/changelog     debian/$(tools_package)/usr/share/doc/$(tools_package)/changelog.Debian
 
+	$(INSTALL_DIR) debian/$(tools_package)/usr/bin/
+	$(INSTALL_PROGRAM) debian/u-boot-update-bootmenu    debian/$(tools_package)/usr/bin/
+	$(INSTALL_PROGRAM) debian/u-boot-gen-combined       debian/$(tools_package)/usr/bin/
+
 	$(INSTALL_DIR) debian/$(tools_package)/usr/share/man/man1
-	$(INSTALL_DIR) debian/$(tools_package)/usr/share/man/man8
 	$(INSTALL_FILE) doc/mkimage.1                 debian/$(tools_package)/usr/share/man/man1/
-	$(INSTALL_FILE) debian/manpages/fw_printenv.8 debian/$(tools_package)/usr/share/man/man8/
-	$(INSTALL_FILE) debian/manpages/fw_setenv.8   debian/$(tools_package)/usr/share/man/man8/
 
 	gzip -9f `find debian/$(tools_package)/usr/share/doc -type f ! -name "copyright"`
 	gzip -9f `find debian/$(tools_package)/usr/share/man -type f`
@@ -167,6 +137,31 @@ binary-arch:	checkroot build
 	chmod -R go=rX debian/$(tools_package)
 
 	dpkg --build debian/$(tools_package) ..
+
+
+	$(INSTALL_DIR) debian/$(flash_package)/DEBIAN
+
+	$(INSTALL_DIR) debian/$(flash_package)/usr/share/doc/$(flash_package)/
+	$(INSTALL_FILE) debian/copyright     debian/$(flash_package)/usr/share/doc/$(flash_package)/
+	$(INSTALL_FILE) debian/changelog     debian/$(flash_package)/usr/share/doc/$(flash_package)/changelog.Debian
+
+	$(INSTALL_DIR) debian/$(flash_package)/boot
+	debian/$(tools_package)/usr/bin/mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n zImage-2.6.28-omap1 -d /boot/zImage-2.6.28-omap1 uImage
+	debian/$(tools_package)/usr/bin/u-boot-gen-combined debian/$(package)/boot/u-boot-$(version).bin uImage combined.bin
+	fiasco-gen -o debian/$(flash_package)/boot/u-boot-$(version)+zImage-2.6.28-omap1.fiasco -g -k combined.bin -v $(version)
+	rm -f uImage combined.bin
+
+	sed "s/@image@/u-boot-$(version)+zImage-2.6.28-omap1/" debian/$(flash_package).postinst.in > debian/$(flash_package)/DEBIAN/postinst
+	chmod 755 debian/$(flash_package)/DEBIAN/postinst
+
+	gzip -9f `find debian/$(flash_package)/usr/share/doc -type f ! -name "copyright"`
+	dpkg-gencontrol -ldebian/changelog -isp -p$(flash_package) -Tdebian/$(flash_package).substvars -Pdebian/$(flash_package)
+	cd debian/$(flash_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+
+	chown -R root:root debian/$(flash_package)
+	chmod -R go=rX debian/$(flash_package)
+
+	dpkg --build debian/$(flash_package) ..
 
 define checkdir
 	test -f debian/rules

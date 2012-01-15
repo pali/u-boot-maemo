@@ -1,44 +1,121 @@
 Source: u-boot
 Section: admin
 Priority: optional
-Maintainer: Clint Adams <clint@debian.org>
-Uploaders: Loïc Minier <lool@debian.org>
+XSBC-Original-Maintainer: Clint Adams <clint@debian.org>
+Maintainer: Pali Rohár <pali.rohar@gmail.com>
+Build-Depends: kernel-bootimg, sdk-fiasco-gen
 Standards-Version: 3.9.2
 Homepage: http://www.denx.de/wiki/U-Boot/
-Vcs-Git: git://git.debian.org/collab-maint/u-boot.git
-Vcs-Browser: http://git.debian.org/?p=collab-maint/u-boot.git;a=summary
 
-Package: u-boot
-Architecture: any
-Description: A boot loader for embedded systems
+Package: u-boot-bootimg
+Architecture: armel
+Description: Das U-Boot bootloader for Nokia N900 (boot image)
  Das U-Boot is a cross-platform bootloader for embedded systems,
  used as the default boot loader by several board vendors.  It is
  intended to be easy to port and to debug, and runs on many
  supported architectures, including PPC, ARM, MIPS, x86, m68k,
  NIOS, and Microblaze.
+ .
+ This package contains only bootloader image without any kernel.
+
+Package: u-boot-flasher
+Section: user/system
+Architecture: armel
+Pre-Depends: u-boot-tools, softupd, maemo-installer-utils
+Breaks: u-boot-for-power-kernel, uboot-power, uboot-power, uboot-pr13
+Description: Das U-Boot bootloader for Nokia N900 (flashable image with Nokia PR1.3 kernel)
+ Das U-Boot is a cross-platform bootloader for embedded systems,
+ used as the default boot loader by several board vendors.  It is
+ intended to be easy to port and to debug, and runs on many
+ supported architectures, including PPC, ARM, MIPS, x86, m68k,
+ NIOS, and Microblaze.
+ .
+ U-Boot bootloader is needed for dual booting other kernels or
+ booting other systems.
+ .
+ This package contains combined image: U-Boot binary with
+ official Nokia PR1.3 kernel 2.6.28-omap1.
+ .
+ After installation it will flash and replace existing kernel.
+XB-Maemo-Display-Name: U-Boot with Nokia PR1.3 kernel
+XB-Maemo-Icon-26:
+ iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QAAAAA
+ AAD5Q7t/AAAACXBIWXMAAABIAAAASABGyWs+AAAACXZwQWcAAAAwAAAAMADO
+ 7oxXAAAK60lEQVRo3sWZf2yU933HX997nnvuB2efz9g+E2M72IADxqAZI5IU
+ BiWzkrYRdbpNESyNupJGk1aVsZYt2qZJHVsbpZsR2ZooS0q7ZDTZJFdhVgLp
+ pk7NCq6CHZPMccAXjB3bwBkfPp/x/X6ez/7wHTmf7WB7TvlIH92P5/t9f9/v
+ z/fz/fnAZ2ONwA+ATmACsIBxoAP4O2DdZ9Tu/9v8wOuACUi+a5omfr9fdF1P
+ AT8CSu404VxzA91zEc96QUGBPPnkk7J7925xuVwCfAjcdaeJZ+3gp5EHxOPx
+ SE1NjXg8HrHZbNn/2wHtTpMH+OXtBMzjJvDAnSYPEALEZrNJUVGRaJo2i6xS
+ StasWSM+ny//2U+X2qhaJvIakPJ4PGrXrl2YpkkwGOT8+fOICD6fj3379lFV
+ VcXIyAi9vb2cOXOGeDyerT8MrAUSdyT0gA7I008/LZcuXZJQKCSHDx++NfO0
+ t7dLJBKRQCAgkUhEjh8/njsGsmlUfqfIZ818+eWXZf369XLkyBF55513xOv1
+ ypo1a8Q0TXnsscekrq5OWltbxTRNqa2tzRdQtpRGbcso4Obk5CQDAwN0nD2D
+ NvkrWu6P8MWmMaLX3ub999/n4sWLHDt2DMuycLvduXWTGV+0LdcYALh86NCh
+ uwv1Cerdx9m2Ae5eV8BAIE5xaYp3+3RePW3S/JXv0bD9ETZu3IhlWbn164C+
+ ZeSzaOts3mLIYNsKsc4h0olId61Ipy7SaRN5t0Lk3bvEfMcm//1DQwx91nT6
+ taU0umwppGuM/vmjSSqrplAKwA7W6DQ3bQ3YXFwfvUFXl0VDbRKHPl1PqVtJ
+ 8PAdFZA2Gf15l4fAh5BOA6RAJrHEzcjQGB+cv0QqGad+I/yqZz03EwqHw0FL
+ Swt1dXUopb4ArFpsu8u5hH9p1caHG92u9YQHL6HbLSYnIRhM4i1M4HJqBOPN
+ 3Cg4grv2AOfOnWNkZASv10tTUxOXL1+2x+NxC/jPOyHAAbTu2LmzaM8jf8yH
+ Q07S44OQtojHXQyF7ydW/j1qd/wFlWsbqaiooLy8nLa2NoaGhujr62NychJg
+ K3ASGF3GwN7WFNCqaZqcPHlSksmknD17Vl566SV58cUX5Y033pBAICDJZFJy
+ zTRNOXDgwFx7o27A85sU8C3AOnTokFiWJSIisVhMent7pbe3V27cuHHr/3z7
+ 6KOPxOl0ziXiBL+hHeofAKn6+nqZmpqaFWHTNOXTzLIs2bt373y71O9+1uR3
+ AlEye6DFWCqVklgsJvF4XE6fPi1KqbkEpIHHb0dCXyL5EuBfAVdxcTEOh4OB
+ gQGqqqqw2Wwkk0k+/vhjPB4Pfr//1lwfDofp7+9neHiYaDSKpmls376d++67
+ j46ODpRSuauzBjwHfAB0LXf0X8hGraWlRbq7u2VycnJGrs+XPslkUkKhkFy4
+ cEFOnTolr7zyirS1tYlhGFJZWSmrV6/O75Eepo+ry2YbbDZbsry8XIqLi6Wn
+ p2dR6ZNr6XRaAoGAnDp1Svbv3y+AeL1e8Xq9+en0t8sp4J/9fr94PB45duzY
+ ksnn2sTEhHR2dorT6ZSamhopKiqSlStX5gqIAtXLQb7EbrdPVVVVSVNTk8Ri
+ sWURkLWdO3feOo5u2rQp/9Dz3FyEFrsX+qMVK1a4Q6EQBw8exOl0zllIRJYU
+ nd27dxMOhzFNk0gkgsPhyH38Vea4R1qMgDLgYCqVQilFc3PzvAUHBweXJKCx
+ sfHW9/Hx8fzzggfYu1QBCvgHu91eUlFRQWNjI2Vlc58ARYSRkZElCSgqKpqB
+ k0ql8ovsWaqAPcA+TdNwOBxs3rw5dx8/w9Lp9JJTKBezsrJyLpy1SxWwA9AS
+ iQRKKVwu17wFTdOcV9xCTdd1EonEXAJmXbssaCVe6aX7zx6H7fXCCyc/Ihb7
+ 7U8tv9QeuHr1Kn6/n8LCQq5du0Z1dTWGYaBpGhcuXAD4xaJBC1y4/vdH6qy8
+ WyzSfbeY51zyV0+45JlnnpFUKjXn4nT27NlFTZ+p/u9IqmuT9L1eIW6nbda+
+ qK6uTlp2282GWvWFRZF32tGe+xYvSpdX5L3fEnlvq8j5ejHP6XJgr5KHHnpI
+ hoeHZxEaHx9fMHkznZSpjnUi5zdK8E2/qDl2pk/u1UTO18uHP6u4mM9x1hhw
+ O3BuWk1dy73se+GbtP/h76snsPk+Kaqc2PRVHDsMN4ZO09jYSFtb24y0yZ1N
+ bpdql/sDhIKjkO5j7EqQR7aCkUlslwFffwB+cMgB5hDFhTFfPsaM0fZ7n+PR
+ 1u/wbLlflSkFygaa7gatBpSRU9KEdD/9QxGavgrhm4r9+/dz9OhRSktLF9zD
+ 8Xic/3rrDapCj7N5S5SJcbjYAwMfw2QUVpXBtns1Slf5QblJJOOJB75xZceZ
+ 963OOXtg51Yerqxyl9nddeiue9AcG0Bfl0ceQAOtkprVBs8/BQrhxIkT7Nix
+ g3A4vGABuq7jcBhMhMGywOuDzU3Q/CB85XfhgQeh9K4q0FaBzYvD6Xe8fqzm
+ 9J4m/dZ1/AwBoTEGkCRggHKDcjHvyU45Qavk0QdtPPHl6b8CgQCBQGDBAmw2
+ G1dGhohOJkhlLhadbgNfqRNfsYHD5QWbd0adkmLvylPPb3jz6Ld93/cVKt+M
+ abRnkCEREyU3QfkWwKAIpJTWbwdxle5h266v09DQsGABHR0dfP9v/pLnv2Fi
+ WYAqAv1uQIGY0zk8RwANwzD+5PGap760M/jlGT1Q4sOulJ6J/ELDuJIVLjt/
+ /VgPv7Orcd4NXq5Fo1FaW1tpbm7Go8Ks8IBu10AryxC2gbJzu3P9+ER6LNsD
+ CjB2b+fz0z8tpmewhayoGiid4hWj/Pr0wwSb/o2GLVtnrMYiQiQSoauri/b2
+ dk6cOMH169cBWOsHTyFougOwL6A9i2vByes//PfrR599deLZrAADcG1vYBuk
+ IB34ZAwox3S+Y2SikjfzKg1QiECRvZ8//dq9XIrVUl1djdPpJBQKEQwGGR4e
+ JpGY/QKmthwMB5n7VDPvqYCkgTRmOkpfIBL8p9ciz738Vvr4zThjQELPMNIB
+ /XArR57az3fLfOm7dD2C3Yhgd4DDAXbDhm43ULZCUB5QOoiAhEHixKKQjEOl
+ z+TUe3309S3sprzYA8kExKbiuD3BzKDVgCSWOUXsZoz+S4nos69Zx199m59M
+ JRhj+l2CHUjpn0iFn73NW+1n6Kgs5p715TTW+LmndhXrqv1U+UutwuKSuFpZ
+ GsdTOIphKFCCWDB1E64MwbURuBYmBVwErgExpjdgsZzvGlDI9Cul6tAE1eNj
+ GA6nRWHROA5HGEsUNyMWo1fhrTP8+h/f5O+vTnA5gzEjr7M/DMCVcWfOpxNw
+ GhqeskJW11ew5XMb2Na4no2lJTidmbEenYKrI6R++ktee72bk2mLwcxAym9L
+ y8F1AI4da9l58It8s7gEm9MFmgbpFIxdJ/kvv+DH/3GeV02LaE4Q4pnPKJBQ
+ OeD2XNLZBjJuZJ7rgFbgpKBhNQ0Nq9mysoBVsQQTP++h7YMrdGeinABS2Z7N
+ 4NsyOLmYulLYGyvZum0N9xe6KQbMq2EG/6eP0wMhApl0SWSI53oCsPKnGS0D
+ bOQRv0U+QyRbTzKRNpm+SUtniCdz3MrUNXI8H1NlPItn5WDl4mWDk84GZ755
+ MruC6Hlum0NA9i1j1lM5YrJplO2BXOL5AVFz4OUGJYs347Cx0KOTmsOzlm10
+ FvgC8GwLwPtUzP8D2ZiyXz3Y3nwAAAAldEVYdGNyZWF0ZS1kYXRlADIwMTAt
+ MDItMDZUMTk6Mjk6MjMrMDE6MDBL9SgPAAAAJXRFWHRtb2RpZnktZGF0ZQAy
+ MDA5LTA5LTI3VDA5OjM1OjM0KzAyOjAwrPojkwAAAABJRU5ErkJggg==
 
 Package: u-boot-tools
 Architecture: any
 Depends: ${shlibs:Depends}
-Breaks: uboot-envtools (<< 20081215-3~),
-        uboot-mkimage (<= 0.4build1),
-        u-boot (<< 2010.12-2)
-Replaces: uboot-envtools (<< 20081215-3~),
-          uboot-mkimage (<= 0.4build1),
-          u-boot (<< 2010.12-2)
-Description: companion tools for Das U-Boot bootloader
+Breaks: uboot-mkimage (<= 0.5)
+Replaces: uboot-mkimage (<= 0.5)
+Description: Das U-Boot bootloader for Nokia N900 (companion tools)
  This package includes the mkimage program, which allows generation of U-Boot
- images in various formats, and the fw_printenv and fw_setenv programs to read
- and modify U-Boot's environment.
-
-Package: uboot-envtools
-Section: utils
-Architecture: all
-Depends: u-boot-tools
-Description: read/modify the environment for the U-Boot boot loader (transitional package)
- Package to ease upgrading from uboot-envtools to u-boot-tools.
- .
- This package may safely be removed.
+ images in various formats, u-boot-update-bootmenu script for generating bootmenu
+ and u-boot-gen-combined script for generating combined images (u-boot + kernel)
 
 Package: uboot-mkimage
 Section: utils

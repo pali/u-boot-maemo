@@ -1,0 +1,17 @@
+#!/bin/sh -e
+
+IMAGE=/boot/@image@.fiasco
+FLASHER=/sbin/fiasco-image-update
+BOOTMENU=/usr/sbin/u-boot-update-bootmenu
+
+if [ -L /targets/links/scratchbox.config ]; then
+	exit;
+fi
+
+if [ -f $IMAGE -a -x $FLASHER ]; then
+	$FLASHER $IMAGE
+fi
+
+if [ -x $BOOTMENU ]; then
+	$BOOTMENU || true
+fi

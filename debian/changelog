@@ -1,3 +1,9 @@
+u-boot (2012.04-1) unstable; urgency=low
+
+  * Nokia RX-51 port
+
+ -- Pali Rohár <pali.rohar@gmail.com>  Fri, 27 Apr 2012 16:34:21 +0200
+
 u-boot (2011.09-2) unstable; urgency=low
 
   * Patch from Pino Toscano <pino@debian.org> to build on the Hurd.

@@ -1,0 +1,84 @@
+#!/bin/sh -e
+#
+#    u-boot-gen-combined - Generate combined image from U-Boot binary and kernel
+#    Copyright (C) 2012  Pali Rohár <pali.rohar@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+if test "$1" = "-h" || test "$1" = "--help"; then
+	echo "This script generate combined image from U-Boot binary and uImage kernel"
+	echo
+	echo "Usage: $0 [u-boot.bin] [uImage] [combined.bin]"
+	echo "u-boot.bin and uImage are input files, combined.bin is output"
+	echo
+	echo "Author: Pali Rohár <pali.rohar@gmail.com>"
+	echo "License: GNU GPL v3"
+	exit 1
+fi
+
+if ! test -z "$1"; then
+	uboot="$1"
+else
+	uboot="u-boot.bin"
+fi
+
+if ! test -z "$2"; then
+	kernel="$2"
+else
+	kernel="uImage"
+fi
+
+if ! test -z "$3"; then
+	output="$3"
+else
+	output="combined.bin"
+fi
+
+if ! test -f "$uboot"; then
+	echo "U-Boot binary $uboot does not exist"
+	exit 1
+fi
+
+if ! test -f "$kernel"; then
+	echo "Kernel U-Boot image $kernel does not exist"
+	exit 1
+fi
+
+uboot_size=$(ls -l "$uboot" | tr -s ' ' | cut -f5 -d' ')
+kernel_size=$(ls -l "$kernel" | tr -s ' ' | cut -f5 -d' ')
+
+uboot_max="262144"
+kernel_max="1835008"
+
+if test "$uboot_size" -gt "$uboot_max"; then
+	echo "U-Boot binary is too big (actual size $uboot_size, max size $uboot_max)"
+	exit 1
+fi
+
+if test "$kernel_size" -gt "$kernel_max"; then
+	echo "Kernel U-Boot image is too big (actual size $kernel_size, max size $kernel_max)"
+	exit 1
+fi
+
+uboot_append="$(($uboot_max-$uboot_size))"
+
+echo "U-Boot binary: $uboot"
+echo "U-Boot kernel image: $kernel"
+
+dd if="$uboot" of="$output" 2>/dev/null
+dd if="/dev/zero" of="$output" bs=1 count="$uboot_append" seek="$uboot_size" 2>/dev/null
+dd if="$kernel" of="$output" bs=1024 seek="$(($uboot_max/1024))" 2>/dev/null
+
+echo "Output combined image: $output"

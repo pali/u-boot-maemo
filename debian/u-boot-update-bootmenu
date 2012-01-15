@@ -1,0 +1,249 @@
+#!/bin/sh -e
+#
+#    u-boot-update-bootmenu - Generate and update Bootmenu for U-Boot
+#    Copyright (C) 2012  Pali Rohár <pali.rohar@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+BOOTMENU_FAT_DIR="/home/user/MyDocs"
+BOOTMENU_CFG_DIR="/etc/bootmenu.d"
+BOOTMENU_BOOT_DIR="/boot"
+BOOTMENU_IMG_DIR="bootmenu.img.d"
+
+BOOTMENU_CMD="/var/tmp/bootmenu.cmd"
+BOOTMENU_SCR="$BOOTMENU_FAT_DIR/bootmenu.scr"
+
+INT_CARD="1"
+EXT_CARD="0"
+
+if test "$1" = "-h" || test "$1" = "--help"; then
+	echo "This script generate U-Boot Bootmenu script $BOOTMENU_SCR"
+	echo "and generate needed images in $BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
+	echo "Bootmenu entries are readed from config files stored in $BOOTMENU_CFG_DIR"
+	echo
+	echo "You need to run this script every time when you install/uninstall"
+	echo "kernel images in $BOOTMENU_BOOT_DIR or when bootmenu config files"
+	echo "in $BOOTMENU_CFG_DIR are changed"
+	echo
+	echo "To run this script, first eMMC FAT paritition must be mounted to"
+	echo "$BOOTMENU_FAT_DIR"
+	echo
+	echo "Author: Pali Rohár <pali.rohar@gmail.com>"
+	echo "License: GNU GPL v3"
+	exit 1
+fi
+
+if ! mount | grep -q "$BOOTMENU_FAT_DIR"; then
+	echo "First eMMC FAT partition $BOOTMENU_FAT_DIR is not mounted!"
+	exit 1
+fi
+
+rm -f "$BOOTMENU_CMD"
+rm -f "$BOOTMENU_SCR"
+rm -rf "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
+mkdir -p "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
+
+# add first entry
+ITEM_NAME="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
+if test -z "$ITEM_NAME"; then
+	ITEM_NAME="Internal Nand"
+else
+	ITEM_NAME="$ITEM_NAME (Internal Nand)"
+fi
+
+echo "Adding bootmenu entry for: $ITEM_NAME"
+printf "setenv bootmenu_0 '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
+count=1
+
+for file in $BOOTMENU_CFG_DIR/*.item; do
+
+	if ! test -f "$file"; then continue; fi
+
+	echo
+	echo "Configuration file: $file"
+
+	ITEM_NAME=""
+	ITEM_DEVICE=""
+	ITEM_FSTYPE=""
+	ITEM_KERNEL=""
+	ITEM_INITRD=""
+	ITEM_SCRIPT=""
+	ITEM_CMDLINE=""
+	ITEM_USEATAG="" # Obsolated
+	ITEM_REUSEATAGS=""
+	. $file
+	mmcnum=""
+	mmcpart=""
+	mmctype=""
+	mmckernfile=""
+	mmcinitrdfile=""
+	mmcscriptfile=""
+
+	if test -z "$ITEM_NAME"; then
+		echo "Error: Invalid file - missing name"
+		continue
+	fi
+
+	if test -z "$ITEM_KERNEL" && test -z "$ITEM_SCRIPT"; then
+		echo "Error: Invalid file - missing kernel or script file"
+		continue
+	fi
+
+	if test "$ITEM_DEVICE" = "nand" || test "$ITEM_DEVICE" = "mtd5" || test "$ITEM_DEVICE" = "rootfs" || test -z "$ITEM_DEVICE"; then
+
+		# kernel and initrd are on rootfs, need to convert to uimage format and store to eMMC (MyDocs FAT part)
+
+		if test -f "$BOOTMENU_BOOT_DIR/zImage-$ITEM_KERNEL"; then
+			ITEM_KERNEL="zImage-$ITEM_KERNEL"
+		fi
+
+		if ! test -f "$BOOTMENU_BOOT_DIR/$ITEM_KERNEL"; then
+			echo "Error: Kernel image '$ITEM_KERNEL' was not found in $BOOTMENU_BOOT_DIR" >&2
+			continue
+		fi
+
+		mmcnum="$INT_CARD"
+		mmcpart="1"
+		mmctype="fat"
+		mmckernfile="$BOOTMENU_IMG_DIR/$ITEM_KERNEL"
+
+		echo "Generating u-boot image for kernel '$ITEM_KERNEL'..."
+		mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$BOOTMENU_BOOT_DIR/$ITEM_KERNEL" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
+
+		if test "$?" != "0"; then
+			echo "Error: Generating u-boot image for kernel '$ITEM_KERNEL' failed" >&2
+			continue
+		fi
+
+		if ! test -z "$ITEM_INITRD"; then
+
+			# we have also initrd
+
+			if test -f "$BOOTMENU_BOOT_DIR/initrd-$ITEM_INITRD"; then
+				ITEM_INITRD="initrd-$ITEM_INITRD"
+			fi
+
+			if ! test -f "$BOOTMENU_BOOT_DIR/$ITEM_INITRD"; then
+				echo "Error: Initrd image '$ITEM_INITRD' was not found in $BOOTMENU_BOOT_DIR" >&2
+				continue
+			fi
+
+			mmcinitrdfile="$BOOTMENU_IMG_DIR/$ITEM_INITRD"
+
+			echo "Generating u-boot image for initrd '$ITEM_INITRD'..."
+			mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$BOOTMENU_BOOT_DIR/$ITEM_INITRD" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
+
+			if test "$?" != "0"; then
+				echo "Error: Generating u-boot image for initrd '$ITEM_INITRD' failed" >&2
+				continue
+			fi
+
+		fi
+
+	else
+
+		# kernel, initrd or script are on eMMC or SD card
+		mmcnum="$(echo $ITEM_DEVICE | cut -f1 -dp)"
+		mmcpart="$(echo ${ITEM_DEVICE}p1 | cut -f2 -dp)" # HACK: if ITEM_DEVICE has no part first is selected
+
+		if test -z "$mmcnum" || test -z "$mmcpart"; then
+			echo "Error: Incorrect device '$ITEM_DEVICE'" >&2
+			continue
+		fi
+
+		if test "$ITEM_FSTYPE" = "fat" || test "$ITEM_FSTYPE" = "vfat"; then
+			mmctype="fat"
+		elif test "$ITEM_FSTYPE" = "ext2" || test "$ITEM_FSTYPE" = "ext3"; then
+			mmctype="ext2"
+		elif test "$ITEM_FSTYPE" = "ext4"; then
+			mmctype="ext4"
+		else
+			echo "Error: Unknown filesystem '$ITEM_FSTYPE'" >&2
+			continue
+		fi
+
+		if ! test -z "$ITEM_SCRIPT"; then
+			mmcscriptfile="$ITEM_SCRIPT"
+		elif ! test -z "$ITEM_INITRD"; then
+			mmckernfile="$ITEM_KERNEL"
+			mmcinitrdfile="$ITEM_INITRD"
+		elif ! test -z "$ITEM_KERNEL"; then
+			mmckernfile="$ITEM_KERNEL"
+		fi
+
+	fi
+
+	if ! test -z "$ITEM_USEATAG"; then
+		echo "Warning: Item file has obsolated option ITEM_USEATAG. Change it to ITEM_REUSEATAGS"
+		ITEM_REUSEATAGS=$ITEM_USEATAG
+	fi
+
+	echo "Adding bootmenu entry for: '$ITEM_NAME'"
+	printf "setenv bootmenu_$count '$ITEM_NAME=" >> "$BOOTMENU_CMD"
+
+	printf "setenv mmcnum $mmcnum;" >> "$BOOTMENU_CMD"
+	printf "setenv mmcpart $mmcpart;" >> "$BOOTMENU_CMD"
+	printf "setenv mmctype $mmctype;" >> "$BOOTMENU_CMD"
+
+	if test -z "$mmcscriptfile" && ! test -z "$ITEM_CMDLINE"; then
+		printf "setenv bootargs $ITEM_CMDLINE;" >> "$BOOTMENU_CMD"
+	else
+		printf "setenv bootargs;" >> "$BOOTMENU_CMD"
+	fi
+
+	if test -z "$mmcscriptfile" && ! test -z "$ITEM_REUSEATAGS"; then
+		printf "setenv atagaddr 0x80000100;" >> "$BOOTMENU_CMD"
+	else
+		printf "setenv atagaddr;" >> "$BOOTMENU_CMD"
+	fi
+
+	if ! test -z "$mmcscriptfile"; then
+		printf "setenv mmckernfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcscriptfile $mmcscriptfile;" >> "$BOOTMENU_CMD"
+		printf "run trymmcscriptboot;" >> "$BOOTMENU_CMD"
+	elif ! test -z "$mmcinitrdfile"; then
+		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcinitrdfile $mmcinitrdfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD"
+		printf "run trymmckerninitrdboot;" >> "$BOOTMENU_CMD"
+	elif ! test -z "$mmckernfile"; then
+		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD"
+		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD"
+		printf "run trymmckernboot;" >> "$BOOTMENU_CMD"
+	else
+		echo "Error: Unknow action" >&2
+	fi
+
+	printf "';" >> "$BOOTMENU_CMD"
+
+	count=$(($count+1))
+
+done
+
+# add last entry
+printf "setenv bootmenu_$count;" >> "$BOOTMENU_CMD"
+
+echo
+echo "Generating u-boot bootmenu script..."
+mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n bootmenu -d "$BOOTMENU_CMD" "$BOOTMENU_SCR" >/dev/null
+
+if test "$?" != "0"; then
+	echo "Error: Generating u-boot bootmenu script failed" >&2
+	exit 1
+fi
+
+rm -f "$BOOTMENU_CMD"
