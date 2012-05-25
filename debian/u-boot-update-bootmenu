@@ -51,21 +51,33 @@ if ! mount | grep -q "$BOOTMENU_FAT_DIR"; then
 fi
 
 rm -f "$BOOTMENU_CMD"
+rm -f "$BOOTMENU_CMD.new"
+rm -f "$BOOTMENU_CMD.default"
 rm -f "$BOOTMENU_SCR"
 rm -rf "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
 mkdir -p "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
 
-# add first entry
+count=0
+default=""
+
+# check for default entry
+if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item; then
+	default="$(readlink -f /etc/default/bootmenu.item)"
+	echo "Default bootmenu entry is '$default'"
+	count=$(($count+1))
+fi
+
+# add entry for attached kernel
 ITEM_NAME="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
 if test -z "$ITEM_NAME"; then
 	ITEM_NAME="Internal Nand"
 else
-	ITEM_NAME="$ITEM_NAME (Internal Nand)"
+	ITEM_NAME="$ITEM_NAME with attached kernel 2.6.28-omap1 (Internal Nand)"
 fi
 
 echo "Adding bootmenu entry for: $ITEM_NAME"
-printf "setenv bootmenu_0 '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
-count=1
+printf "setenv bootmenu_$count '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
+count=$(($count+1))
 
 for file in $BOOTMENU_CFG_DIR/*.item; do
 
@@ -190,52 +202,72 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		ITEM_REUSEATAGS=$ITEM_USEATAG
 	fi
 
-	echo "Adding bootmenu entry for: '$ITEM_NAME'"
-	printf "setenv bootmenu_$count '$ITEM_NAME=" >> "$BOOTMENU_CMD"
+	rm -f "$BOOTMENU_CMD.new"
 
-	printf "setenv mmcnum $mmcnum;" >> "$BOOTMENU_CMD"
-	printf "setenv mmcpart $mmcpart;" >> "$BOOTMENU_CMD"
-	printf "setenv mmctype $mmctype;" >> "$BOOTMENU_CMD"
+	echo "Adding bootmenu entry for: '$ITEM_NAME'"
+	printf "setenv bootmenu_$count '$ITEM_NAME=" >> "$BOOTMENU_CMD.new"
+
+	printf "setenv mmcnum $mmcnum;" >> "$BOOTMENU_CMD.new"
+	printf "setenv mmcpart $mmcpart;" >> "$BOOTMENU_CMD.new"
+	printf "setenv mmctype $mmctype;" >> "$BOOTMENU_CMD.new"
 
 	if test -z "$mmcscriptfile" && ! test -z "$ITEM_CMDLINE"; then
-		printf "setenv bootargs $ITEM_CMDLINE;" >> "$BOOTMENU_CMD"
+		printf "setenv bootargs $ITEM_CMDLINE;" >> "$BOOTMENU_CMD.new"
 	else
-		printf "setenv bootargs;" >> "$BOOTMENU_CMD"
+		printf "setenv bootargs;" >> "$BOOTMENU_CMD.new"
 	fi
 
 	if test -z "$mmcscriptfile" && ! test -z "$ITEM_REUSEATAGS"; then
-		printf "setenv atagaddr 0x80000100;" >> "$BOOTMENU_CMD"
+		printf "setenv atagaddr 0x80000100;" >> "$BOOTMENU_CMD.new"
 	else
-		printf "setenv atagaddr;" >> "$BOOTMENU_CMD"
+		printf "setenv atagaddr;" >> "$BOOTMENU_CMD.new"
 	fi
 
 	if ! test -z "$mmcscriptfile"; then
-		printf "setenv mmckernfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcscriptfile $mmcscriptfile;" >> "$BOOTMENU_CMD"
-		printf "run trymmcscriptboot;" >> "$BOOTMENU_CMD"
+		printf "setenv mmckernfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcscriptfile $mmcscriptfile;" >> "$BOOTMENU_CMD.new"
+		printf "run trymmcscriptboot;" >> "$BOOTMENU_CMD.new"
 	elif ! test -z "$mmcinitrdfile"; then
-		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcinitrdfile $mmcinitrdfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD"
-		printf "run trymmckerninitrdboot;" >> "$BOOTMENU_CMD"
+		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcinitrdfile $mmcinitrdfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD.new"
+		printf "run trymmckerninitrdboot;" >> "$BOOTMENU_CMD.new"
 	elif ! test -z "$mmckernfile"; then
-		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD"
-		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD"
-		printf "run trymmckernboot;" >> "$BOOTMENU_CMD"
+		printf "setenv mmckernfile $mmckernfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcinitrdfile;" >> "$BOOTMENU_CMD.new"
+		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD.new"
+		printf "run trymmckernboot;" >> "$BOOTMENU_CMD.new"
 	else
 		echo "Error: Unknow action" >&2
 	fi
 
-	printf "';" >> "$BOOTMENU_CMD"
+	printf "';" >> "$BOOTMENU_CMD.new"
 
-	count=$(($count+1))
+	if test "$default" = "$file" && ! test -f "$BOOTMENU_CMD.default"; then
+		echo "Configuring this bootmenu entry as default"
+		sed 's/^setenv bootmenu_./setenv bootmenu_0/' "$BOOTMENU_CMD.new" > "$BOOTMENU_CMD.default"
+	else
+		cat "$BOOTMENU_CMD.new" >> "$BOOTMENU_CMD"
+		count=$(($count+1))
+	fi
+
+	rm -f "$BOOTMENU_CMD.new"
 
 done
 
 # add last entry
 printf "setenv bootmenu_$count;" >> "$BOOTMENU_CMD"
+
+# if problems add some default entry
+if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item && ! test -f "$BOOTMENU_CMD.default"; then
+	echo
+	echo "Configuring attached kernel as default bootmenu entry"
+	printf "setenv bootmenu_0 'Attached kernel=run attachboot';" > "$BOOTMENU_CMD.default"
+fi
+
+cat "$BOOTMENU_CMD.default" "$BOOTMENU_CMD" > "$BOOTMENU_CMD.new"
+mv "$BOOTMENU_CMD.new" "$BOOTMENU_CMD"
 
 echo
 echo "Generating u-boot bootmenu script..."
@@ -247,3 +279,5 @@ if test "$?" != "0"; then
 fi
 
 rm -f "$BOOTMENU_CMD"
+rm -f "$BOOTMENU_CMD.new"
+rm -f "$BOOTMENU_CMD.default"
