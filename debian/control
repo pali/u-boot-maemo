@@ -22,6 +22,7 @@ Package: u-boot-flasher
 Section: user/system
 Architecture: armel
 Pre-Depends: u-boot-tools, softupd, maemo-installer-utils
+Depends: kernel-modules
 Breaks: u-boot-for-power-kernel, uboot-power, uboot-power, uboot-pr13
 Description: Das U-Boot bootloader for Nokia N900 (flashable image with Nokia PR1.3 kernel)
  Das U-Boot is a cross-platform bootloader for embedded systems,
