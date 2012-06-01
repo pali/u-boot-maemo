@@ -60,7 +60,7 @@ uboot_size=$(ls -l "$uboot" | tr -s ' ' | cut -f5 -d' ')
 kernel_size=$(ls -l "$kernel" | tr -s ' ' | cut -f5 -d' ')
 
 uboot_max="262144"
-kernel_max="1835008"
+kernel_max="1832960"
 
 if test "$uboot_size" -gt "$uboot_max"; then
 	echo "U-Boot binary is too big (actual size $uboot_size, max size $uboot_max)"
