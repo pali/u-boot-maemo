@@ -94,7 +94,8 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 	ITEM_SCRIPT=""
 	ITEM_CMDLINE=""
 	ITEM_USEATAG="" # Obsolated
-	ITEM_REUSEATAGS=""
+	ITEM_REUSEATAGS="" # Obsolated
+	ITEM_OMAPATAG=""
 	. $file
 	mmcnum=""
 	mmcpart=""
@@ -198,8 +199,13 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 	fi
 
 	if ! test -z "$ITEM_USEATAG"; then
-		echo "Warning: Item file has obsolated option ITEM_USEATAG. Change it to ITEM_REUSEATAGS"
-		ITEM_REUSEATAGS=$ITEM_USEATAG
+		echo "Warning: Item file has obsolated option ITEM_USEATAG. Change it to ITEM_OMAPATAG"
+		ITEM_OMAPATAG=$ITEM_USEATAG
+	fi
+
+	if ! test -z "$ITEM_REUSEATAGS"; then
+		echo "Warning: Item file has obsolated option ITEM_REUSEATAGS. Change it to ITEM_OMAPATAG"
+		ITEM_OMAPATAG=$ITEM_REUSEATAGS
 	fi
 
 	rm -f "$BOOTMENU_CMD.new"
@@ -217,10 +223,10 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		printf "setenv bootargs;" >> "$BOOTMENU_CMD.new"
 	fi
 
-	if test -z "$mmcscriptfile" && ! test -z "$ITEM_REUSEATAGS"; then
-		printf "setenv atagaddr 0x80000100;" >> "$BOOTMENU_CMD.new"
+	if test -z "$mmcscriptfile" && ! test -z "$ITEM_OMAPATAG"; then
+		printf "setenv setup_omap_atag 1;" >> "$BOOTMENU_CMD.new"
 	else
-		printf "setenv atagaddr;" >> "$BOOTMENU_CMD.new"
+		printf "setenv setup_omap_atag;" >> "$BOOTMENU_CMD.new"
 	fi
 
 	if ! test -z "$mmcscriptfile"; then
@@ -239,7 +245,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		printf "setenv mmcscriptfile;" >> "$BOOTMENU_CMD.new"
 		printf "run trymmckernboot;" >> "$BOOTMENU_CMD.new"
 	else
-		echo "Error: Unknow action" >&2
+		echo "Error: Unknown action" >&2
 	fi
 
 	printf "';" >> "$BOOTMENU_CMD.new"
