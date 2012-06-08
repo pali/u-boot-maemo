@@ -46,7 +46,12 @@ if test "$1" = "-h" || test "$1" = "--help"; then
 fi
 
 if ! mount | grep -q "$BOOTMENU_FAT_DIR"; then
-	echo "First eMMC FAT partition $BOOTMENU_FAT_DIR is not mounted!"
+	echo "First eMMC partition $BOOTMENU_FAT_DIR is not mounted!"
+	exit 1
+fi
+
+if ! mount | grep "$BOOTMENU_FAT_DIR" | grep -q "type vfat"; then
+	echo "First eMMC partition $BOOTMENU_FAT_DIR is not FAT32!"
 	exit 1
 fi
 
