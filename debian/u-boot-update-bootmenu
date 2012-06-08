@@ -272,8 +272,10 @@ if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item && !
 	printf "setenv bootmenu_0 'Attached kernel=run attachboot';" > "$BOOTMENU_CMD.default"
 fi
 
-cat "$BOOTMENU_CMD.default" "$BOOTMENU_CMD" > "$BOOTMENU_CMD.new"
-mv "$BOOTMENU_CMD.new" "$BOOTMENU_CMD"
+if test -f "$BOOTMENU_CMD.default"; then
+	cat "$BOOTMENU_CMD.default" "$BOOTMENU_CMD" > "$BOOTMENU_CMD.new"
+	mv "$BOOTMENU_CMD.new" "$BOOTMENU_CMD"
+fi
 
 echo
 echo "Generating u-boot bootmenu script..."
