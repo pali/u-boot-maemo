@@ -20,6 +20,7 @@
 BOOTMENU_FAT_DIR="/home/user/MyDocs"
 BOOTMENU_CFG_DIR="/etc/bootmenu.d"
 BOOTMENU_BOOT_DIR="/boot"
+BOOTMENU_OPTBOOT_DIR="/opt/boot"
 BOOTMENU_IMG_DIR="bootmenu.img.d"
 
 BOOTMENU_CMD="/var/tmp/bootmenu.cmd"
@@ -34,8 +35,8 @@ if test "$1" = "-h" || test "$1" = "--help"; then
 	echo "Bootmenu entries are readed from config files stored in $BOOTMENU_CFG_DIR"
 	echo
 	echo "You need to run this script every time when you install/uninstall"
-	echo "kernel images in $BOOTMENU_BOOT_DIR or when bootmenu config files"
-	echo "in $BOOTMENU_CFG_DIR are changed"
+	echo "kernel images in $BOOTMENU_BOOT_DIR or $BOOTMENU_OPTBOOT_DIR or"
+	echo "when bootmenu config files in $BOOTMENU_CFG_DIR are changed"
 	echo
 	echo "To run this script, first eMMC FAT paritition must be mounted to"
 	echo "$BOOTMENU_FAT_DIR"
@@ -68,8 +69,12 @@ default=""
 # check for default entry
 if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item; then
 	default="$(readlink -f /etc/default/bootmenu.item)"
-	echo "Default bootmenu entry is '$default'"
-	count=$(($count+1))
+	if ! test -f "$default"; then
+		default=""
+	else
+		echo "Default bootmenu entry is '$default'"
+		count=$(($count+1))
+	fi
 fi
 
 # add entry for attached kernel
@@ -123,12 +128,20 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 		# kernel and initrd are on rootfs, need to convert to uimage format and store to eMMC (MyDocs FAT part)
 
-		if test -f "$BOOTMENU_BOOT_DIR/zImage-$ITEM_KERNEL"; then
+		# kernel and initrd images can be optified, check full path
+		kernel_path=""
+		initrd_path=""
+
+		if test -f "$BOOTMENU_BOOT_DIR/zImage-$ITEM_KERNEL" || test -f "$BOOTMENU_OPTBOOT_DIR/zImage-$ITEM_KERNEL"; then
 			ITEM_KERNEL="zImage-$ITEM_KERNEL"
 		fi
 
-		if ! test -f "$BOOTMENU_BOOT_DIR/$ITEM_KERNEL"; then
-			echo "Error: Kernel image '$ITEM_KERNEL' was not found in $BOOTMENU_BOOT_DIR" >&2
+		if test -f "$BOOTMENU_BOOT_DIR/$ITEM_KERNEL"; then
+			kernel_path="$BOOTMENU_BOOT_DIR/$ITEM_KERNEL"
+		elif test -f "$BOOTMENU_OPTBOOT_DIR/$ITEM_KERNEL"; then
+			kernel_path="$BOOTMENU_OPTBOOT_DIR/$ITEM_KERNEL"
+		else
+			echo "Error: Kernel image '$ITEM_KERNEL' was not found in $BOOTMENU_BOOT_DIR or $BOOTMENU_OPTBOOT_DIR" >&2
 			continue
 		fi
 
@@ -138,7 +151,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		mmckernfile="$BOOTMENU_IMG_DIR/$ITEM_KERNEL"
 
 		echo "Generating u-boot image for kernel '$ITEM_KERNEL'..."
-		mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$BOOTMENU_BOOT_DIR/$ITEM_KERNEL" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
+		mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$kernel_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
 
 		if test "$?" != "0"; then
 			echo "Error: Generating u-boot image for kernel '$ITEM_KERNEL' failed" >&2
@@ -149,19 +162,23 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 			# we have also initrd
 
-			if test -f "$BOOTMENU_BOOT_DIR/initrd-$ITEM_INITRD"; then
+			if test -f "$BOOTMENU_BOOT_DIR/initrd-$ITEM_INITRD" || test -f "$BOOTMENU_OPTBOOT_DIR/initrd-$ITEM_INITRD"; then
 				ITEM_INITRD="initrd-$ITEM_INITRD"
 			fi
 
-			if ! test -f "$BOOTMENU_BOOT_DIR/$ITEM_INITRD"; then
-				echo "Error: Initrd image '$ITEM_INITRD' was not found in $BOOTMENU_BOOT_DIR" >&2
+			if test -f "$BOOTMENU_BOOT_DIR/$ITEM_INITRD"; then
+				initrd_path="$BOOTMENU_BOOT_DIR/$ITEM_INITRD"
+			elif test -f "$BOOTMENU_OPTBOOT_DIR/$ITEM_INITRD"; then
+				initrd_path="$BOOTMENU_OPTBOOT_DIR/$ITEM_INITRD"
+			else
+				echo "Error: Initrd image '$ITEM_INITRD' was not found in $BOOTMENU_BOOT_DIR or $BOOTMENU_OPTBOOT_DIR" >&2
 				continue
 			fi
 
 			mmcinitrdfile="$BOOTMENU_IMG_DIR/$ITEM_INITRD"
 
 			echo "Generating u-boot image for initrd '$ITEM_INITRD'..."
-			mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$BOOTMENU_BOOT_DIR/$ITEM_INITRD" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
+			mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$initrd_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
 
 			if test "$?" != "0"; then
 				echo "Error: Generating u-boot image for initrd '$ITEM_INITRD' failed" >&2
@@ -257,7 +274,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 	if test "$default" = "$file" && ! test -f "$BOOTMENU_CMD.default"; then
 		echo "Configuring this bootmenu entry as default"
-		sed 's/^setenv bootmenu_./setenv bootmenu_0/' "$BOOTMENU_CMD.new" > "$BOOTMENU_CMD.default"
+		sed 's/^setenv bootmenu_[0-9]*/setenv bootmenu_0/' "$BOOTMENU_CMD.new" > "$BOOTMENU_CMD.default"
 	else
 		cat "$BOOTMENU_CMD.new" >> "$BOOTMENU_CMD"
 		count=$(($count+1))
