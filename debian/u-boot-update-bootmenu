@@ -150,12 +150,16 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		mmctype="fat"
 		mmckernfile="$BOOTMENU_IMG_DIR/$ITEM_KERNEL"
 
-		echo "Generating u-boot image for kernel '$ITEM_KERNEL'..."
-		mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$kernel_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
+		if ! test -z "$(mkimage -l $kernel_path 2>&1 1>/dev/null)"; then
 
-		if test "$?" != "0"; then
-			echo "Error: Generating u-boot image for kernel '$ITEM_KERNEL' failed" >&2
-			continue
+			echo "Generating u-boot image for kernel '$ITEM_KERNEL'..."
+			mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$kernel_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
+
+			if test "$?" != "0"; then
+				echo "Error: Generating u-boot image for kernel '$ITEM_KERNEL' failed" >&2
+				continue
+			fi
+
 		fi
 
 		if ! test -z "$ITEM_INITRD"; then
@@ -177,12 +181,16 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 			mmcinitrdfile="$BOOTMENU_IMG_DIR/$ITEM_INITRD"
 
-			echo "Generating u-boot image for initrd '$ITEM_INITRD'..."
-			mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$initrd_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
+			if ! test -z "$(mkimage -l $initrd_path 2>&1 1>/dev/null)"; then
 
-			if test "$?" != "0"; then
-				echo "Error: Generating u-boot image for initrd '$ITEM_INITRD' failed" >&2
-				continue
+				echo "Generating u-boot image for initrd '$ITEM_INITRD'..."
+				mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$initrd_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
+
+				if test "$?" != "0"; then
+					echo "Error: Generating u-boot image for initrd '$ITEM_INITRD' failed" >&2
+					continue
+				fi
+
 			fi
 
 		fi
