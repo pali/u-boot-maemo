@@ -1,8 +1,8 @@
-u-boot (2012.04-1) unstable; urgency=low
+u-boot (2012.10-rc3-1) unstable; urgency=low
 
   * Nokia RX-51 port
 
- -- Pali Rohár <pali.rohar@gmail.com>  Fri, 27 Apr 2012 16:34:21 +0200
+ -- Pali Rohár <pali.rohar@gmail.com>  Fri, 12 Oct 2012 22:34:47 +0200
 
 u-boot (2011.09-2) unstable; urgency=low
 
