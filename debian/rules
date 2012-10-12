@@ -148,7 +148,7 @@ binary-arch:	checkroot build
 	$(INSTALL_DIR) debian/$(flash_package)/boot
 	debian/$(tools_package)/usr/bin/mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n zImage-2.6.28-omap1 -d /boot/zImage-2.6.28-omap1 uImage
 	debian/$(tools_package)/usr/bin/u-boot-gen-combined debian/$(package)/boot/u-boot-$(version).bin uImage combined.bin
-	fiasco-gen -o debian/$(flash_package)/boot/u-boot-$(version)+zImage-2.6.28-omap1.fiasco -g -k combined.bin -v $(version)
+	fiasco-gen -o debian/$(flash_package)/boot/u-boot-$(version)+zImage-2.6.28-omap1.fiasco -g -k combined.bin -v u-boot-$(version)
 	rm -f uImage combined.bin
 
 	sed "s/@image@/u-boot-$(version)+zImage-2.6.28-omap1/" debian/$(flash_package).postinst.in > debian/$(flash_package)/DEBIAN/postinst
