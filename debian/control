@@ -21,7 +21,7 @@ Description: Das U-Boot bootloader for Nokia N900 (boot image)
 Package: u-boot-flasher
 Section: user/system
 Architecture: armel
-Pre-Depends: u-boot-tools, softupd, maemo-installer-utils
+Pre-Depends: u-boot-tools, softupd, fiasco-image-update-ask
 Depends: kernel-modules
 Breaks: u-boot-for-power-kernel, uboot-power, uboot-power, uboot-pr13
 Description: Das U-Boot bootloader for Nokia N900 (flashable image with Nokia PR1.3 kernel)
@@ -110,7 +110,7 @@ XB-Maemo-Icon-26:
 
 Package: u-boot-tools
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, fiasco-image-update-ask
 Breaks: uboot-mkimage (<= 0.5)
 Replaces: uboot-mkimage (<= 0.5)
 Description: Das U-Boot bootloader for Nokia N900 (companion tools)
