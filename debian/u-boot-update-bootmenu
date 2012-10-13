@@ -78,14 +78,19 @@ if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item; the
 fi
 
 # add entry for attached kernel
-ITEM_NAME="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
-if test -z "$ITEM_NAME"; then
-	ITEM_NAME="Internal Nand"
+system="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
+kernel="$(zimage-get-version -f /dev/mtd3ro 2>/dev/null || true)"
+if test -z "$system" && test -z "$kernel"; then
+	ITEM_NAME="Attached kernel"
+elif test -z "$system"; then
+	ITEM_NAME="Attached kernel $kernel"
+elif test -z "$kernel"; then
+	ITEM_NAME="$system with attached kernel (Internal Nand)"
 else
-	ITEM_NAME="$ITEM_NAME with attached kernel 2.6.28-omap1 (Internal Nand)"
+	ITEM_NAME="$system with attached kernel $kernel (Internal Nand)"
 fi
 
-echo "Adding bootmenu entry for: $ITEM_NAME"
+echo "Adding bootmenu entry for: '$ITEM_NAME'"
 printf "setenv bootmenu_$count '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
 count=$(($count+1))
 
