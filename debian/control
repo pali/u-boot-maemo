@@ -117,12 +117,3 @@ Description: Das U-Boot bootloader for Nokia N900 (companion tools)
  This package includes the mkimage program, which allows generation of U-Boot
  images in various formats, u-boot-update-bootmenu script for generating bootmenu
  and u-boot-gen-combined script for generating combined images (u-boot + kernel)
-
-Package: uboot-mkimage
-Section: utils
-Architecture: all
-Depends: u-boot-tools
-Description: generate kernel image for U-Boot (transitional package)
- Package to ease upgrading from uboot-mkimage to u-boot-tools.
- .
- This package may safely be removed.
