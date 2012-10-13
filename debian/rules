@@ -102,6 +102,12 @@ binary-arch:	checkroot build
 
 	mv debian/$(package)/boot/u-boot.bin debian/$(package)/boot/u-boot-$(version).bin
 
+	$(INSTALL_DIR) debian/$(package)/etc/bootmenu.d
+	rm -f debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
+	echo 'ITEM_NAME="U-Boot $(version)"' >> debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
+	echo 'ITEM_KERNEL="u-boot-$(version).bin"' >> debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
+	echo 'ITEM_OMAPATAG="1"' >> debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
+
 	gzip -9f `find debian/$(package)/usr/share/doc -type f ! -name "copyright"`
 	dpkg-gencontrol -ldebian/changelog -isp -p$(package) -Tdebian/$(package).substvars -Pdebian/$(package)
 	cd debian/$(package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
