@@ -108,6 +108,10 @@ binary-arch:	checkroot build
 	echo 'ITEM_KERNEL="u-boot-$(version).bin"' >> debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
 	echo 'ITEM_OMAPATAG="1"' >> debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
 
+	cp debian/$(package).postinst debian/$(package)/DEBIAN/postinst
+	cp debian/$(package).postrm debian/$(package)/DEBIAN/postrm
+	chmod 755 debian/$(package)/DEBIAN/postinst debian/$(package)/DEBIAN/postrm
+
 	gzip -9f `find debian/$(package)/usr/share/doc -type f ! -name "copyright"`
 	dpkg-gencontrol -ldebian/changelog -isp -p$(package) -Tdebian/$(package).substvars -Pdebian/$(package)
 	cd debian/$(package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
