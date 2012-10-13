@@ -23,8 +23,10 @@ Section: user/system
 Architecture: armel
 Pre-Depends: u-boot-tools, softupd, fiasco-image-update-ask
 Depends: kernel-modules
-Breaks: u-boot-for-power-kernel, uboot-power, uboot-power, uboot-pr13
-Description: Das U-Boot bootloader for Nokia N900 (flashable image with Nokia PR1.3 kernel)
+Breaks: u-boot-for-power-kernel, uboot-power, uboot-pr13
+Conflicts: u-boot-for-power-kernel, uboot-power, uboot-pr13
+Replaces: u-boot-for-power-kernel, uboot-power, uboot-pr13
+Description: Das U-Boot bootloader for Nokia N900 (flashable image with kernel 2.6.28-omap1)
  Das U-Boot is a cross-platform bootloader for embedded systems,
  used as the default boot loader by several board vendors.  It is
  intended to be easy to port and to debug, and runs on many
@@ -38,7 +40,7 @@ Description: Das U-Boot bootloader for Nokia N900 (flashable image with Nokia PR
  official Nokia PR1.3 kernel 2.6.28-omap1.
  .
  After installation it will flash and replace existing kernel.
-XB-Maemo-Display-Name: U-Boot with Nokia PR1.3 kernel
+XB-Maemo-Display-Name: U-Boot with kernel 2.6.28-omap1
 XB-Maemo-Icon-26:
  iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QAAAAA
  AAD5Q7t/AAAACXBIWXMAAABIAAAASABGyWs+AAAACXZwQWcAAAAwAAAAMADO
@@ -110,9 +112,10 @@ XB-Maemo-Icon-26:
 
 Package: u-boot-tools
 Architecture: any
-Depends: ${shlibs:Depends}, fiasco-image-update-ask
-Breaks: uboot-mkimage (<= 0.5)
-Replaces: uboot-mkimage (<= 0.5)
+Depends: ${shlibs:Depends}
+Breaks: uboot-mkimage, mkimage
+Conflicts: uboot-mkimage, mkimage
+Replaces: uboot-mkimage, mkimage
 Description: Das U-Boot bootloader for Nokia N900 (companion tools)
  This package includes the mkimage program, which allows generation of U-Boot
  images in various formats, u-boot-update-bootmenu script for generating bootmenu
