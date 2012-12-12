@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+BOOTMENU=/usr/bin/u-boot-update-bootmenu
+
+if [ -x $BOOTMENU ]; then
+	$BOOTMENU || true
+fi
+
+#DEBHELPER#
