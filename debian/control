@@ -111,7 +111,7 @@ XB-Maemo-Icon-26:
  MDA5LTA5LTI3VDA5OjM1OjM0KzAyOjAwrPojkwAAAABJRU5ErkJggg==
 
 Package: u-boot-tools
-Architecture: any
+Architecture: armel
 Depends: ${shlibs:Depends}
 Breaks: uboot-mkimage, mkimage
 Conflicts: uboot-mkimage, mkimage
