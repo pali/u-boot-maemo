@@ -82,7 +82,9 @@ binary-arch:	checkroot build
 	$(INSTALL_FILE) debian/changelog \
 	    debian/$(package)/usr/share/doc/$(package)/changelog.Debian
 
-	mv debian/$(package)/boot/u-boot.bin debian/$(package)/boot/u-boot-$(version).bin
+	$(INSTALL_DIR) debian/$(package)/opt/
+	mv debian/$(package)/boot/ debian/$(package)/opt/boot/
+	mv debian/$(package)/opt/boot/u-boot.bin debian/$(package)/opt/boot/u-boot-$(version).bin
 
 	$(INSTALL_DIR) debian/$(package)/etc/bootmenu.d
 	rm -f debian/$(package)/etc/bootmenu.d/30-U-Boot-$(version).item
