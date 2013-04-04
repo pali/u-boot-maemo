@@ -17,42 +17,43 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-BOOTMENU_FAT_DIR="/home/user/MyDocs"
+BOOTMENU_EMMC_DIR="/home/user/MyDocs"
 BOOTMENU_CFG_DIR="/etc/bootmenu.d"
 BOOTMENU_BOOT_DIR="/boot"
 BOOTMENU_OPTBOOT_DIR="/opt/boot"
 BOOTMENU_IMG_DIR="bootmenu.img.d"
 
 BOOTMENU_CMD="/var/tmp/bootmenu.cmd"
-BOOTMENU_SCR="$BOOTMENU_FAT_DIR/bootmenu.scr"
+BOOTMENU_SCR="$BOOTMENU_EMMC_DIR/bootmenu.scr"
 
 INT_CARD="1"
 EXT_CARD="0"
 
 if test "$1" = "-h" || test "$1" = "--help"; then
 	echo "This script generate U-Boot Bootmenu script $BOOTMENU_SCR"
-	echo "and generate needed images in $BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
+	echo "and generate needed images in $BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
 	echo "Bootmenu entries are readed from config files stored in $BOOTMENU_CFG_DIR"
 	echo
 	echo "You need to run this script every time when you install/uninstall"
 	echo "kernel images in $BOOTMENU_BOOT_DIR or $BOOTMENU_OPTBOOT_DIR or"
 	echo "when bootmenu config files in $BOOTMENU_CFG_DIR are changed"
 	echo
-	echo "To run this script, first eMMC FAT paritition must be mounted to"
-	echo "$BOOTMENU_FAT_DIR"
+	echo "To run this script, first eMMC paritition must be mounted to"
+	echo "$BOOTMENU_EMMC_DIR"
 	echo
 	echo "Author: Pali Rohár <pali.rohar@gmail.com>"
 	echo "License: GNU GPL v3"
 	exit 1
 fi
 
-if ! mount | grep -q "$BOOTMENU_FAT_DIR"; then
-	echo "First eMMC partition $BOOTMENU_FAT_DIR is not mounted!"
+if ! mount | grep -q "$BOOTMENU_EMMC_DIR"; then
+	echo "First eMMC partition $BOOTMENU_EMMC_DIR is not mounted!"
 	exit 1
 fi
 
-if ! mount | grep "$BOOTMENU_FAT_DIR" | grep -q "type vfat"; then
-	echo "First eMMC partition $BOOTMENU_FAT_DIR is not FAT32!"
+type=$(mount | grep "$BOOTMENU_EMMC_DIR" | sed 's/.*type //;s/ .*//')
+if test "$type" != "ext2" && test "$type" != "ext3" && test "$type" != "ext4" && test "$type" != "vfat"; then
+	echo "First eMMC partition $BOOTMENU_EMMC_DIR must be ext2, ext3, ext4 or FAT32!"
 	exit 1
 fi
 
@@ -60,8 +61,8 @@ rm -f "$BOOTMENU_CMD"
 rm -f "$BOOTMENU_CMD.new"
 rm -f "$BOOTMENU_CMD.default"
 rm -f "$BOOTMENU_SCR"
-rm -rf "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
-mkdir -p "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR"
+rm -rf "$BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
+mkdir -p "$BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
 
 count=0
 default=""
@@ -131,7 +132,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 	if test "$ITEM_DEVICE" = "nand" || test "$ITEM_DEVICE" = "mtd5" || test "$ITEM_DEVICE" = "rootfs" || test -z "$ITEM_DEVICE"; then
 
-		# kernel and initrd are on rootfs, need to convert to uimage format and store to eMMC (MyDocs FAT part)
+		# kernel and initrd are on rootfs, need to convert to uimage format and store to eMMC
 
 		# kernel and initrd images can be optified, check full path
 		kernel_path=""
@@ -158,7 +159,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 		if ! test -z "$(mkimage -l $kernel_path 2>&1 1>/dev/null)"; then
 
 			echo "Generating u-boot image for kernel '$ITEM_KERNEL'..."
-			mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$kernel_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
+			mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "$ITEM_KERNEL" -d "$kernel_path" "$BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR/$ITEM_KERNEL" >/dev/null
 
 			if test "$?" != "0"; then
 				echo "Error: Generating u-boot image for kernel '$ITEM_KERNEL' failed" >&2
@@ -189,7 +190,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 			if ! test -z "$(mkimage -l $initrd_path 2>&1 1>/dev/null)"; then
 
 				echo "Generating u-boot image for initrd '$ITEM_INITRD'..."
-				mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$initrd_path" "$BOOTMENU_FAT_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
+				mkimage -A arm -O linux -T ramdisk -C none -a 0 -e 0 -n "$ITEM_INITRD" -d "$initrd_path" "$BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR/$ITEM_INITRD" >/dev/null
 
 				if test "$?" != "0"; then
 					echo "Error: Generating u-boot image for initrd '$ITEM_INITRD' failed" >&2
