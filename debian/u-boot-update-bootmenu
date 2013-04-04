@@ -26,10 +26,47 @@ BOOTMENU_IMG_DIR="bootmenu.img.d"
 BOOTMENU_CMD="/var/tmp/bootmenu.cmd"
 BOOTMENU_SCR="$BOOTMENU_EMMC_DIR/bootmenu.scr"
 
+BOOTMENU_DEFAULT="/etc/default/bootmenu.item"
+
 INT_CARD="1"
 EXT_CARD="0"
 
-if test "$1" = "-h" || test "$1" = "--help"; then
+HELP="0"
+
+while test "$#" -gt 0; do
+	case "$1" in
+		-e|--emmc)
+			BOOTMENU_EMMC_DIR="$2"
+			shift
+			;;
+		-c|--cfg)
+			BOOTMENU_CFG_DIR="$2"
+			shift
+			;;
+		-b|--boot)
+			BOOTMENU_BOOT_DIR="$2"
+			shift
+			;;
+		-o|--optboot)
+			BOOTMENU_OPTBOOT_DIR="$2"
+			shift
+			;;
+		-d|--default)
+			BOOTMENU_DEFAULT="$2"
+			shift
+			;;
+		-h|--help)
+			HELP="1"
+			;;
+		*)
+			echo "Unknown option: $2"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+if test "$HELP" = "1"; then
 	echo "This script generate U-Boot Bootmenu script $BOOTMENU_SCR"
 	echo "and generate needed images in $BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
 	echo "Bootmenu entries are readed from config files stored in $BOOTMENU_CFG_DIR"
@@ -40,6 +77,17 @@ if test "$1" = "-h" || test "$1" = "--help"; then
 	echo
 	echo "To run this script, first eMMC paritition must be mounted to"
 	echo "$BOOTMENU_EMMC_DIR"
+	echo
+	echo "Options:"
+	echo "-e|--emmc    - path to mounted eMMC partition"
+	echo "-c|--cfg     - path to cfg directory"
+	echo "-b|--boot    - path to boot directory"
+	echo "-o|--optboot - path to optified boot directory"
+	echo "-d|--default - path to default symlink item"
+	echo "-h|--help    - show this help"
+	echo
+	echo "Supported filesystems for first eMMC partition:"
+	echo "ext2 ext3 ext4 vfat"
 	echo
 	echo "Author: Pali Rohár <pali.rohar@gmail.com>"
 	echo "License: GNU GPL v3"
@@ -68,8 +116,8 @@ count=0
 default=""
 
 # check for default entry
-if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item; then
-	default="$(readlink -f /etc/default/bootmenu.item)"
+if test -f "$BOOTMENU_DEFAULT" && test -h "$BOOTMENU_DEFAULT"; then
+	default="$(readlink -f $BOOTMENU_DEFAULT)"
 	if ! test -f "$default"; then
 		default=""
 	else
@@ -302,7 +350,7 @@ done
 printf "setenv bootmenu_$count;" >> "$BOOTMENU_CMD"
 
 # if problems add some default entry
-if test -f /etc/default/bootmenu.item && test -h /etc/default/bootmenu.item && ! test -f "$BOOTMENU_CMD.default"; then
+if test -f "$BOOTMENU_DEFAULT" && test -h "$BOOTMENU_DEFAULT" && ! test -f "$BOOTMENU_CMD.default"; then
 	echo
 	echo "Configuring attached kernel as default bootmenu entry"
 	printf "setenv bootmenu_0 'Attached kernel=run attachboot';" > "$BOOTMENU_CMD.default"
