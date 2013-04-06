@@ -174,7 +174,7 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 	fi
 
 	if test -z "$ITEM_KERNEL" && test -z "$ITEM_SCRIPT"; then
-		echo "Error: Invalid file - missing kernel or script file"
+		echo "Warning: Invalid file - missing kernel or script file - skipping..."
 		continue
 	fi
 
