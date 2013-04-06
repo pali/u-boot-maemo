@@ -67,18 +67,18 @@ while test "$#" -gt 0; do
 done
 
 if test "$HELP" = "1"; then
-	echo "This script generate U-Boot Bootmenu script $BOOTMENU_SCR"
-	echo "and generate needed images in $BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
-	echo "Bootmenu entries are readed from config files stored in $BOOTMENU_CFG_DIR"
+	echo "This script generates U-Boot Bootmenu script $BOOTMENU_SCR"
+	echo "and needed images in $BOOTMENU_EMMC_DIR/$BOOTMENU_IMG_DIR"
+	echo "Bootmenu entries are read from config files stored in $BOOTMENU_CFG_DIR"
 	echo
-	echo "You need to run this script every time when you install/uninstall"
-	echo "kernel images in $BOOTMENU_BOOT_DIR or $BOOTMENU_OPTBOOT_DIR or"
-	echo "when bootmenu config files in $BOOTMENU_CFG_DIR are changed"
+	echo "You need to run this script every time you install or uninstall"
+	echo "kernel images in $BOOTMENU_BOOT_DIR, $BOOTMENU_OPTBOOT_DIR"
+	echo "or when bootmenu config files in $BOOTMENU_CFG_DIR are changed"
 	echo
-	echo "To run this script, first eMMC paritition must be mounted to"
+	echo "To run this script, first eMMC partition must be mounted to"
 	echo "$BOOTMENU_EMMC_DIR"
 	echo
-	echo "Options:"
+	echo "Options for custom paths:"
 	echo "-e|--emmc    - path to mounted eMMC partition"
 	echo "-c|--cfg     - path to cfg directory"
 	echo "-b|--boot    - path to boot directory"
@@ -157,8 +157,8 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 	ITEM_INITRD=""
 	ITEM_SCRIPT=""
 	ITEM_CMDLINE=""
-	ITEM_USEATAG="" # Obsolated
-	ITEM_REUSEATAGS="" # Obsolated
+	ITEM_USEATAG="" # Obsoleted
+	ITEM_REUSEATAGS="" # Obsoleted
 	ITEM_OMAPATAG=""
 	. $file
 	mmcnum=""
