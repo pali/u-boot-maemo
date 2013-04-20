@@ -1,3 +1,9 @@
+u-boot (2013.04-1) unstable; urgency=low
+
+  * Update to version 2013.04
+
+ -- Pali Rohár <pali.rohar@gmail.com>  Sat, 20 Apr 2013 10:48:15 +0200
+
 u-boot (2012.10-rc3-1) unstable; urgency=low
 
   * Nokia RX-51 port
