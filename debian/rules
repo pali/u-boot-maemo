@@ -41,10 +41,15 @@ build-arch:
 	    | while read platform target; do \
 	        builddir=`pwd`/debian/build/$$platform; \
 	        installdir=debian/$(package)/boot; \
+	        precompiled=precompiled-$$platform; \
+	        $(INSTALL_DIR) $$installdir; \
+	        if test -f $$precompiled; then \
+	            $(INSTALL_FILE) -D $$precompiled $$installdir/u-boot.bin; \
+	            continue; \
+	        fi; \
 	        mkdir -p $$builddir; \
 	        $(MAKE) O=$$builddir $${platform}_config; \
 	        $(MAKE) O=$$builddir $$builddir/$$target; \
-	        $(INSTALL_DIR) $$installdir; \
 	        $(INSTALL_FILE) $$builddir/$$target $$installdir; \
 	done
 
