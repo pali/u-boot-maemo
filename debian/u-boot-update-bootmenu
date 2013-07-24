@@ -99,7 +99,7 @@ if ! mount | grep -q "$BOOTMENU_EMMC_DIR"; then
 	exit 1
 fi
 
-type=$(mount | grep "$BOOTMENU_EMMC_DIR" | sed 's/.*type //;s/ .*//')
+type=$(mount | grep " $BOOTMENU_EMMC_DIR " | sed 's/.*type //;s/ .*//')
 if test "$type" != "ext2" && test "$type" != "ext3" && test "$type" != "ext4" && test "$type" != "vfat"; then
 	echo "First eMMC partition $BOOTMENU_EMMC_DIR must be ext2, ext3, ext4 or FAT32!"
 	exit 1
