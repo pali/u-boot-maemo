@@ -28,6 +28,8 @@ BOOTMENU_SCR="$BOOTMENU_EMMC_DIR/bootmenu.scr"
 
 BOOTMENU_DEFAULT="/etc/default/bootmenu.item"
 
+BOOTMENU_NO_ATTACHED="0"
+
 INT_CARD="1"
 EXT_CARD="0"
 
@@ -55,6 +57,10 @@ while test "$#" -gt 0; do
 			BOOTMENU_DEFAULT="$2"
 			shift
 			;;
+		-n|--no-attached)
+			BOOTMENU_NO_ATTACHED="1"
+			shift
+			;;
 		-h|--help)
 			HELP="1"
 			;;
@@ -79,12 +85,13 @@ if test "$HELP" = "1"; then
 	echo "$BOOTMENU_EMMC_DIR"
 	echo
 	echo "Options for custom paths:"
-	echo "-e|--emmc    - path to mounted eMMC partition"
-	echo "-c|--cfg     - path to cfg directory"
-	echo "-b|--boot    - path to boot directory"
-	echo "-o|--optboot - path to optified boot directory"
-	echo "-d|--default - path to default symlink item"
-	echo "-h|--help    - show this help"
+	echo "-e|--emmc        - path to mounted eMMC partition"
+	echo "-c|--cfg         - path to cfg directory"
+	echo "-b|--boot        - path to boot directory"
+	echo "-o|--optboot     - path to optified boot directory"
+	echo "-d|--default     - path to default symlink item"
+	echo "-n|--no-attached - do not add attached kernel menu entry"
+	echo "-h|--help        - show this help"
 	echo
 	echo "Supported filesystems for first eMMC partition:"
 	echo "ext2 ext3 ext4 vfat"
@@ -127,21 +134,23 @@ if test -f "$BOOTMENU_DEFAULT" && test -h "$BOOTMENU_DEFAULT"; then
 fi
 
 # add entry for attached kernel
-system="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
-kernel="$(zimage-get-version -f /dev/mtd3ro 2>/dev/null || true)"
-if test -z "$system" && test -z "$kernel"; then
-	ITEM_NAME="Attached kernel"
-elif test -z "$system"; then
-	ITEM_NAME="Attached kernel $kernel"
-elif test -z "$kernel"; then
-	ITEM_NAME="$system with attached kernel (Internal Nand)"
-else
-	ITEM_NAME="$system with attached kernel $kernel (Internal Nand)"
-fi
+if test "$BOOTMENU_NO_ATTACHED" != "1"; then
+	system="$(osso-product-info -q OSSO_PRODUCT_RELEASE_NAME 2>/dev/null || true)"
+	kernel="$(zimage-get-version -f /dev/mtd3ro 2>/dev/null || true)"
+	if test -z "$system" && test -z "$kernel"; then
+		ITEM_NAME="Attached kernel"
+	elif test -z "$system"; then
+		ITEM_NAME="Attached kernel $kernel"
+	elif test -z "$kernel"; then
+		ITEM_NAME="$system with attached kernel (Internal Nand)"
+	else
+		ITEM_NAME="$system with attached kernel $kernel (Internal Nand)"
+	fi
 
-echo "Adding bootmenu entry for: '$ITEM_NAME'"
-printf "setenv bootmenu_$count '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
-count=$(($count+1))
+	echo "Adding bootmenu entry for: '$ITEM_NAME'"
+	printf "setenv bootmenu_$count '$ITEM_NAME=run attachboot';" >> "$BOOTMENU_CMD"
+	count=$(($count+1))
+fi
 
 for file in $BOOTMENU_CFG_DIR/*.item; do
 
