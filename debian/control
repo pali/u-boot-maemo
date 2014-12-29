@@ -23,7 +23,6 @@ Section: user/system
 Architecture: armel
 Pre-Depends: u-boot-tools, softupd, fiasco-image-update-ask
 Depends: kernel-modules
-Breaks: u-boot-for-power-kernel, uboot-power, uboot-pr13, multiboot
 Conflicts: u-boot-for-power-kernel, uboot-power, uboot-pr13, multiboot
 Replaces: u-boot-for-power-kernel, uboot-power, uboot-pr13, multiboot
 Description: Das U-Boot bootloader for Nokia N900 (flashable image with kernel 2.6.28-omap1)
@@ -113,7 +112,6 @@ XB-Maemo-Icon-26:
 Package: u-boot-tools
 Architecture: armel
 Depends: ${shlibs:Depends}
-Breaks: uboot-mkimage, mkimage
 Conflicts: uboot-mkimage, mkimage
 Replaces: uboot-mkimage, mkimage
 Description: Das U-Boot bootloader for Nokia N900 (companion tools)
