@@ -6,6 +6,7 @@ INSTALL_DIR     := install -m 755 -d
 
 version := $(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
 tools_version := 20081215-3+$(version)
+kernel_version := $(shell dpkg-query -W -f \${Version} kernel)
 
 package := u-boot-bootimg
 flash_package := u-boot-flasher
@@ -155,6 +156,7 @@ binary-arch:	checkroot build
 
 	gzip -9f `find debian/$(flash_package)/usr/share/doc -type f ! -name "copyright"`
 	dpkg-gencontrol -ldebian/changelog -isp -p$(flash_package) -Tdebian/$(flash_package).substvars -Pdebian/$(flash_package)
+	sed "s/kernel-modules/kernel-modules (= $(kernel_version))/g" -i debian/$(flash_package)/DEBIAN/control
 	cd debian/$(flash_package) && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
 
 	chown -R root:root debian/$(flash_package)
