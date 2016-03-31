@@ -210,8 +210,14 @@ for file in $BOOTMENU_CFG_DIR/*.item; do
 
 		mmcnum="$INT_CARD"
 		mmcpart="1"
-		mmctype="fat"
+		mmctype="$type"
 		mmckernfile="$BOOTMENU_IMG_DIR/$ITEM_KERNEL"
+
+		if test "$mmctype" = "vfat"; then
+			mmctype="fat"
+		elif test "$mmctype" = "ext3"; then
+			mmctype="ext2"
+		fi
 
 		if ! test -z "$(mkimage -l $kernel_path 2>&1 1>/dev/null)"; then
 
