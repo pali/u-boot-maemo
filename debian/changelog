@@ -1,3 +1,13 @@
+u-boot (2013.04-2) unstable; urgency=low
+
+  * u-boot-update-bootmenu: Fix detecting type of MyDocs partition
+  * u-boot-update-bootmenu: Add param --no-attached to disable adding attached kernel to menu
+  * Debian: Remove unsupported Breaks attribute
+  * Debian: Depends on correct kernel version
+  * u-boot-update-bootmenu: Fix support for MyDocs different as fat
+
+ -- Pali Rohár <pali.rohar@gmail.com>  Wed, 06 Apr 2016 23:50:41 +0200
+
 u-boot (2013.04-1) unstable; urgency=low
 
   * Update to version 2013.04
