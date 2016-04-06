@@ -6,7 +6,7 @@ INSTALL_DIR     := install -m 755 -d
 
 version := $(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
 tools_version := 20081215-3+$(version)
-kernel_version := $(shell dpkg-query -W -f \${Version} kernel)
+kernel_version := $(shell dpkg-query -W -f \$${Version} kernel-bootimg)
 
 package := u-boot-bootimg
 flash_package := u-boot-flasher
