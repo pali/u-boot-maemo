@@ -56,8 +56,8 @@ if ! test -f "$kernel"; then
 	exit 1
 fi
 
-uboot_size=$(ls -l "$uboot" | tr -s ' ' | cut -f5 -d' ')
-kernel_size=$(ls -l "$kernel" | tr -s ' ' | cut -f5 -d' ')
+uboot_size=$(wc -c < "$uboot")
+kernel_size=$(wc -c < "$kernel")
 
 uboot_max="262144"
 kernel_max="1832960"
